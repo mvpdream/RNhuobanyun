@@ -1,0 +1,25 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="actionMenuTextColor">#fcfcfc</item>
+        <item name="android:actionMenuTextAppearance">@style/ReadingMenuTextStyle</item>
+        <item name="actionMenuTextAppearance">@style/ReadingMenuTextStyle</item>
+        <item name="android:titleTextStyle">@style/Toolbartitle</item>
+        <!-- 设置状态栏的颜色. -->
+        <!--<item name="colorPrimary">#175898</item>-->
+        <!--<item name="colorPrimaryDark">#175898</item>-->
+    </style>
+    <!-- 导航栏字体颜色 （右侧）-->
+    <style name="ReadingMenuTextStyle">
+        <item name="android:textColor">#fcfcfc</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    <!-- 导航栏字体颜色 （左侧）-->
+    <style name="Toolbartitle">
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">#fcfcfc</item>
+    </style>
+
+</resources>
