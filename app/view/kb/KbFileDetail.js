@@ -411,7 +411,8 @@ export default class KbFileDetail extends React.Component{
           havaIcon:false,
           startLoad:false,
           fetchSuccess:false,
-          creatFlag:false
+          creatFlag:false,
+          isFetch:false
         };
       _this=this;
     };
@@ -439,6 +440,7 @@ export default class KbFileDetail extends React.Component{
       .then((res)=>{
         loaderHandler.hideLoader();
         if(res.Type==1){
+          this.setState({isFetch:true});
           this.setState({fetchSuccess:true});
           this.getFileIcon(res.Data);
           str=res.Data.FileName.substring(0,res.Data.FileName.lastIndexOf("."));
@@ -474,6 +476,7 @@ export default class KbFileDetail extends React.Component{
         .then((res)=>{
           loaderHandler.hideLoader();
           if(res.Type==1){
+            this.setState({isFetch:true});
             this.setState({fetchSuccess:true});
             this.getFileIcon(res.Data);
             str=res.Data.FileName.substring(0,res.Data.FileName.lastIndexOf("."));
@@ -894,7 +897,7 @@ export default class KbFileDetail extends React.Component{
 
                     </View>} />
               {
-                this.state.fetchSuccess? <ScrollView keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>
+                this.state.isFetch?this.state.fetchSuccess? <ScrollView keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>
                   <View style={{flex:1}}>
                     <View style={styles.fileInfoView}>
                       {
@@ -1018,7 +1021,7 @@ export default class KbFileDetail extends React.Component{
                       />
                     <Text style={{fontSize:14}}>没有找到该文件！</Text>
                   </View>
-                </View>
+                </View>:null
               }
 
               <KbMenuView ref="kbMenuView" nav={this.props.nav}/>

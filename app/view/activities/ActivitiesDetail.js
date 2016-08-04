@@ -18,7 +18,6 @@ import React, {
   BackAndroid,
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import apiUrl from '../../network/utils/Http.js'
@@ -54,6 +53,7 @@ var dismissKeyboard = require('dismissKeyboard');
 import ZanNum from '../common/ZanNumView.js'
 import ComNum from '../common/ComNumView.js'
 import FavorView from '../common/FavorUsersView.js'
+import NavigationBar from 'react-native-navbar';
 
 //动态投票选择项cell
 class Cell extends Component {
@@ -157,10 +157,10 @@ export default class ActivitiesDetail extends React.Component {
     radioNum=1;
     selectedItem=[];
     this.getActDetail();
-    BackAndroid.addEventListener('hardwareBackPress', this._onBackAndroid);
+
   };
   componentWillUnmount() {
-    BackAndroid.removeEventListener('hardwareBackPress', this._onBackAndroid);
+
   }
   onBackAndroid(){
     /**
@@ -172,12 +172,13 @@ export default class ActivitiesDetail extends React.Component {
     this.setState({isUnreceiptedUsers:!this.state.isUnreceiptedUsers})
   }
   getActDetail(){
-    loaderHandler.showLoader("加载中...");
     var Id=this.props.activityId;
+    loaderHandler.showLoader("加载中...");
     api.Activity.getActivityDetail(Id)
       .then((resData)=>{
         loaderHandler.hideLoader();
         if(resData.Type==1) {
+          this.setState({isFetch:true});
           var AnnouncementTil = resData.Data && resData.Data.Items && resData.Data.Items.map((Announcementitem)=> {
               if (Announcementitem.TenantType == 'Announcement') {
                 return Announcementitem.Title
@@ -292,6 +293,7 @@ export default class ActivitiesDetail extends React.Component {
           else {
             this.refs.commentInput.startIn(commentConfig, 1)
           }
+
         }
         else {
           this.setState({ishaveAct:false})
@@ -369,7 +371,6 @@ export default class ActivitiesDetail extends React.Component {
     return( <Cell optionTemp={optionTemp}/>)
   }
   backList(){
-    BackAndroid.removeEventListener('hardwareBackPress', this._onBackAndroid);
     dismissKeyboard();
     this.props.nav.pop();
   }
@@ -419,19 +420,16 @@ export default class ActivitiesDetail extends React.Component {
     this.ActionSheet.show();
   }
   deleteActivities(){
-    this.popup.confirm({
-      title: '提示',
-      content: '确定删除该动态？',
-      ok: {
-        text:'确定',
-        callback: () => {
+    Alert.alert(
+      '提示',
+      '确定删除该动态？',
+      [
+        {text: '取消'},
+        {text: '确定', onPress:() => {
           this.props.deleteactivity(this.props.activityId,this.props.type==null?0:this.props.type);
-        }
-      },
-      cancel: {
-        text: '取消'
-      }
-    });
+        }}
+      ]
+    )
 
   }
   render() {
@@ -441,18 +439,40 @@ export default class ActivitiesDetail extends React.Component {
           return obj;
         }
       });
-    var toolbarActions = [
-      {title: '删除', iconName: 'ios-trash',show: 'always'}
-    ];
     var body="<p>"+item.Body+"</p>";
     return (
-     this.state.ishaveAct?<View style={{flex:1,backgroundColor:'white'}}>
-       <NavToolbar
-         navIconName={"android-arrow-back"}
-         title={'动态详情'}
-         actions={this.state.isDelete?toolbarActions:null}
-         onActionSelected={this.deleteActivities.bind(this)}
-         onClicked={this.backList.bind(this)}/>
+    this.state.ishaveAct?<View style={{flex:1,backgroundColor:'white'}}>
+       <NavigationBar
+         style={{height: 55,backgroundColor:'#175898'}}
+         leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={this.backList.bind(this)}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>动态详情</Text>
+                     </View>
+                   }
+         rightButton={
+                  <View style={{flexDirection: 'row',alignItems: 'center'}}>
+                  {
+                    this.state.isDelete?<TouchableOpacity style={[styles.touIcon,{marginRight:10}]} onPress={this.deleteActivities.bind(this)}>
+                        <Icons
+                          name='ios-trash'
+                          size={25}
+                          onPress={this.deleteActivities.bind(this)}
+                          color='white'
+                          />
+                        </TouchableOpacity>:<View/>
+                  }
+                    </View>} />
+
+      {this.state.isFetch?
+        <View style={{flex:1}}>
        <ScrollView keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>
          <View style={{backgroundColor:'white',padding:18,paddingBottom:0}}>
 
@@ -742,14 +762,38 @@ export default class ActivitiesDetail extends React.Component {
        </View>
        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
        <Popup ref={(popup) => { this.popup = popup }}/>
-
+        </View>:<View style={{flex:1}}>
+        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white'/>
+      </View>}
      </View>:<View style={{flex:1,backgroundColor:'white'}}>
-       <NavToolbar
-         navIconName={"android-arrow-back"}
-         title={'动态详情'}
-         actions={this.state.isDelete?toolbarActions:null}
-         onActionSelected={this.deleteActivities.bind(this)}
-         onClicked={this.backList.bind(this)}/>
+       <NavigationBar
+         style={{height: 55,backgroundColor:'#175898'}}
+         leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={this.backList.bind(this)}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>动态详情</Text>
+                     </View>
+                   }
+         rightButton={
+                  <View style={{flexDirection: 'row',alignItems: 'center'}}>
+                  {
+                    this.state.isDelete?<TouchableOpacity style={[styles.touIcon,{marginRight:10}]} onPress={this.deleteActivities.bind(this)}>
+                        <Icons
+                          name='ios-trash'
+                          size={25}
+                          onPress={this.deleteActivities.bind(this)}
+                          color='white'
+                          />
+                        </TouchableOpacity>:<View/>
+                  }
+                    </View>} />
        <View style={styles.noruleViewV}>
          <Icon
            name="exclamation-circle"

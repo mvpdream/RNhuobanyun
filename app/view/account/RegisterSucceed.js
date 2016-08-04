@@ -11,9 +11,10 @@ import React, {
     ToastAndroid,
     } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons';
 
 
 export default class RegisterSucceed extends React.Component{
@@ -30,7 +31,21 @@ export default class RegisterSucceed extends React.Component{
     render(){
         return(
             <View style={styles.recontainer}>
-                <NavToolbar navIconName={"android-arrow-back"} title={'注册'}  onClicked={() => {this.props.nav.pop();}} />
+                <NavigationBar
+                  style={{height: 55,backgroundColor:'#175898'}}
+                  leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>注册成功</Text>
+                     </View>
+                   }/>
                 <View style={styles.rescontainer}>
                   <View style={styles.resimageView}>
                       <Image resizeMode="stretch" style={styles.resImage} source={require('../image/succeed.png')}/>

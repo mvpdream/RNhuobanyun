@@ -12,10 +12,11 @@ import React, {
     TextInput,
     } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 import Dimensions from 'Dimensions';
 import api from "../../network/ApiHelper";
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons';
 
 export default class JoinCompany extends React.Component{
     state = {
@@ -46,7 +47,21 @@ export default class JoinCompany extends React.Component{
     render(){
         return(
             <View style={styles.recontainer}>
-                <NavToolbar navIconName={"android-arrow-back"} title={'加入企业'}  nav={this.props.nav} onClicked={() => {this.props.nav.pop();}}/>
+                <NavigationBar
+                  style={{height: 55,backgroundColor:'#175898'}}
+                  leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>加入企业</Text>
+                     </View>
+                   }/>
                 <View style={styles.container}>
                     <View style={styles.creatcom}>
                         <Text style={styles.titletext}>企业号</Text>

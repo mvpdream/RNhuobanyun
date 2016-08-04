@@ -17,11 +17,11 @@ import React, {
   ScrollView
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
+import NavigationBar from 'react-native-navbar';
 var {height, widths} = Dimensions.get('window');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
@@ -49,6 +49,7 @@ export default class SubmitReport extends React.Component {
       newarr:[],
       islock:false,
       isfirst:true,
+      isFetch:false,
       reportData: this.props.reportItems
     };
   };
@@ -71,8 +72,11 @@ export default class SubmitReport extends React.Component {
       this.setState({
         isCreat: false
       });
+      loaderHandler.showLoader("加载中...");
       api.Report.getReportDetail(this.props.reportItems.Id)
         .then((resData)=> {
+          loaderHandler.hideLoader();
+          this.setState({isFetch:true});
             if(resData.Data.IsLocked==1){
               //锁定 不显示保存和提交按钮
               this.setState({islock:true});
@@ -94,8 +98,11 @@ export default class SubmitReport extends React.Component {
             this.setState({oldimg:oldimg});}
 
     });}
+    loaderHandler.showLoader("加载中...");
     api.Report.getReportTemplate(this.props.reportItems.type, this.props.reportItems.dateTarget)
       .then((resData)=> {
+        loaderHandler.hideLoader();
+        this.setState({isFetch:true});
         this.setState({
           templateItem: resData.Data,
         });
@@ -303,203 +310,225 @@ export default class SubmitReport extends React.Component {
           item.Name
         )
       });
-    var toolbarActions = [
-      {title: '保存', show: 'always'},
-      {title: '提交', show: 'always'},
-    ];
-    var toolbarActionss = [
-      {title: '提交', show: 'always'},
-    ];
     return (
       <View style={styles.submitCon}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={this.state.isCreat?'写'+typeName:'修改'+typeName}
-          actions={this.state.islock?null:this.props.reportItems.submitted&&!this.props.reportItems.isTemp?toolbarActionss:toolbarActions}
-          onActionSelected={this.submitReport.bind(this)}
-          onClicked={() => {this.props.nav.pop();}}/>
-        <View style={styles.reportTitle}>
-          {this.state.isCreat ? <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>{this.state.templateItem.title}</Text>
-            : <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>{this.state.reportDetail.Title}</Text>}
-        </View>
-        <ScrollView keyboardShouldPersistTaps={true}>
-          <View style={styles.conView}>
-            {
-              this.state.isCreat ?
-                this.state.templateItem.templates==null
-                  ?<View
-                  style={[styles.conViews,{borderColor: '#ECEFF1', borderWidth: 1}]}>
-                  <TextInput
-                    style={{height:100,textAlignVertical:'top'}}
-                    multiline={true}
-                    textAlign={'start'}
-                    onChangeText={(text) => this.setState({ reportCons: text})}
-                    underlineColorAndroid="transparent"
-                    />
-                </View> :
-              this.state.templateItem.templates && this.state.templateItem.templates.map((item, index)=> {
-                return (
-                  <View key={index}>
-                    <View style={styles.tempTitle}><Text style={{fontSize: 15,color:'black'}}>{item}</Text></View>
-                  <View
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>{this.state.isCreat?'写'+typeName:'修改'+typeName}</Text>
+                     </View>
+                   }
+          rightButton={
+                <View style={{justifyContent: 'center'}}>
+                {
+                 this.state.islock?null:this.props.reportItems.submitted&&!this.props.reportItems.isTemp?
+                 <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.submitReport.bind(this,0)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>提交</Text>
+                 </TouchableOpacity>:
+                 <View style={{justifyContent: 'center',flexDirection: 'row'}}>
+                 <TouchableOpacity style={{marginRight:10}} onPress={this.submitReport.bind(this,0)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>保存</Text>
+                      </TouchableOpacity>
+                       <TouchableOpacity style={{marginRight:10}} onPress={this.submitReport.bind(this,1)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>提交</Text>
+                      </TouchableOpacity></View>
+                }
+                </View>
+              } />
+        {this.state.isFetch?<View style={{flex:1}}>
+          <View style={styles.reportTitle}>
+            {this.state.isCreat ? <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>{this.state.templateItem.title}</Text>
+              : <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>{this.state.reportDetail.Title}</Text>}
+          </View>
+          <ScrollView keyboardShouldPersistTaps={true}>
+            <View style={styles.conView}>
+              {
+                this.state.isCreat ?
+                  this.state.templateItem.templates==null
+                    ?<View
                     style={[styles.conViews,{borderColor: '#ECEFF1', borderWidth: 1}]}>
                     <TextInput
                       style={{height:100,textAlignVertical:'top'}}
-                      placeholder={item}
                       multiline={true}
                       textAlign={'start'}
-                      onChangeText={(text) => this.setState({ ['reportCon' + index]: text})}
-                      textAlignVertical={'top'}
+                      onChangeText={(text) => this.setState({ reportCons: text})}
                       underlineColorAndroid="transparent"
                       />
-                  </View>
-                  </View>
-                )
-              }) :
-                this.state.reportDetail.ExtendPropertyInfos && this.state.reportDetail.ExtendPropertyInfos.length==0
-                ?<View
-                style={[styles.conViews,{borderColor: '#ECEFF1', borderWidth: 1}]}>
-                <TextInput
-                  style={{height:100}}
-                  multiline={true}
-                  defaultValue={this.state.reportDetail.Body}
-                  textAlign={'start'}
-                  onChangeText={(text) => this.setState({ reportCons: text})}
-                  textAlignVertical={'top'}
-                  underlineColorAndroid="transparent"
-                  />
-              </View>:this.state.reportDetail.ExtendPropertyInfos && this.state.reportDetail.ExtendPropertyInfos.map((item, index)=> {
-                return (
-                  <View key={index}>
-                    <View style={styles.tempTitle}><Text style={{fontSize: 15,color:'black'}}>{item.Name}</Text></View>
-                  <View
-                    key={index}
+                  </View> :
+                  this.state.templateItem.templates && this.state.templateItem.templates.map((item, index)=> {
+                    return (
+                      <View key={index}>
+                        <View style={styles.tempTitle}><Text style={{fontSize: 15,color:'black'}}>{item}</Text></View>
+                        <View
+                          style={[styles.conViews,{borderColor: '#ECEFF1', borderWidth: 1}]}>
+                          <TextInput
+                            style={{height:100,textAlignVertical:'top'}}
+                            placeholder={item}
+                            multiline={true}
+                            textAlign={'start'}
+                            onChangeText={(text) => this.setState({ ['reportCon' + index]: text})}
+                            textAlignVertical={'top'}
+                            underlineColorAndroid="transparent"
+                            />
+                        </View>
+                      </View>
+                    )
+                  }) :
+                  this.state.reportDetail.ExtendPropertyInfos && this.state.reportDetail.ExtendPropertyInfos.length==0
+                    ?<View
                     style={[styles.conViews,{borderColor: '#ECEFF1', borderWidth: 1}]}>
                     <TextInput
                       style={{height:100}}
                       multiline={true}
-                      defaultValue={item.Body}
+                      defaultValue={this.state.reportDetail.Body}
                       textAlign={'start'}
-                      onChangeText={(text) => this.setState({ ['reportCon' + index]: text})}
+                      onChangeText={(text) => this.setState({ reportCons: text})}
                       textAlignVertical={'top'}
                       underlineColorAndroid="transparent"
                       />
-                  </View>
-                  </View>
-                )
-              })
-
-            }
-          </View>
-          <View style={styles.attView}>
-            <Icon
-              name="paperclip"
-              size={20}
-              color="black"
-              style={{ width: 20,height: 20,color: "black",justifyContent: 'center'}}
-              />
-            <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>附件</Text>
-          </View>
-          <View style={{flexDirection: 'row',flexWrap: 'wrap'}}>
-            {
-
-              this.state.oldimg != null && this.state.oldimg.length > 0 ?
-              this.state.oldimg && this.state.oldimg.map((item, index)=> {
-                return (
-                  <View key={index} style={{padding:10}}>
-                    <Image
-                      resizeMode='cover'
-                      source={{uri:item.Url}}
-                      style={{width: 70,height: 85,}}
-                      />
-                    <Icons name='ios-close'
-                           size={26}
-                           color='#C7254E'
-                           onPress={this.deleteoldImage.bind(this,index)}
-                           style={{width: 28, height: 28,position: 'absolute',top:-3,right:-3}}/>
-                  </View>
-                )
-              })
-                : null
-            }
-            {
-              this.state.imageData && this.state.imageData.map((item, index)=> {
-                return (
-                  <View key={index} style={{padding:10}}>
-                    <Image
-                      resizeMode='cover'
-                      source={{uri:item.uri}}
-                      style={{width: 70,height: 85}}
-                      />
-                    <Icons name='ios-close'
-                           size={26}
-                           color='#C7254E'
-                           onPress={this.deleteImage.bind(this,index)}
-                           style={{width: 28, height: 28,position: 'absolute',top:-3,right:-3}}/>
-                  </View>
-                )
-              })
-            }
-            {
-              this.state.imageData.length>=3||this.state.oldimg.length>=3||(this.state.imageData.length+this.state.oldimg.length)>=3?
-               null:<TouchableOpacity onPress={this.uploadImages.bind(this)}>
-                <View style={styles.addimageView}>
-                  <Icons name='ios-plus-empty'
-                         size={50}
-                         color='#737373'
-                         onPress={this.uploadImages.bind(this)}
-                    />
-                </View></TouchableOpacity>
-            }
-          </View>
-          <View style={{flexDirection: 'row',flexWrap: 'wrap'}}>
-            {
-              this.state.oldimageData && this.state.oldimageData.map((filesitem, index)=> {
-                if(filesitem.Name.indexOf(".png")==-1&&filesitem.Name.indexOf(".jpg")==-1&&filesitem.Name.indexOf(".jpeg")==-1){
-                  return (
-                    <TouchableOpacity  key={index} onPress={this.downLoadfiles.bind(this,filesitem.Name,filesitem.DownloadUrl)}>
-                      <View style={{flexDirection: 'row',padding:5}}>
-                        <Icon
-                          name="file"
-                          size={20}
-                          color='#F0AD4E'
-                          style={{width:25}}
-                          />
-                        <Text style={{color:'black',marginLeft:5}}>{filesitem.Name}</Text>
+                  </View>:this.state.reportDetail.ExtendPropertyInfos && this.state.reportDetail.ExtendPropertyInfos.map((item, index)=> {
+                    return (
+                      <View key={index}>
+                        <View style={styles.tempTitle}><Text style={{fontSize: 15,color:'black'}}>{item.Name}</Text></View>
+                        <View
+                          key={index}
+                          style={[styles.conViews,{borderColor: '#ECEFF1', borderWidth: 1}]}>
+                          <TextInput
+                            style={{height:100}}
+                            multiline={true}
+                            defaultValue={item.Body}
+                            textAlign={'start'}
+                            onChangeText={(text) => this.setState({ ['reportCon' + index]: text})}
+                            textAlignVertical={'top'}
+                            underlineColorAndroid="transparent"
+                            />
+                        </View>
                       </View>
-                    </TouchableOpacity>
-                  )}
-              })
-            }
-          </View>
+                    )
+                  })
 
-          <View style={{borderColor:'#ECEFF1',borderWidth: 1,marginTop:10}}>
-            <View style={styles.tasterView}>
-              <Text style={styles.dedailText}>审阅人：
-                {tasteruser.join(',')}
-              </Text>
+              }
             </View>
-          </View>
+            <View style={styles.attView}>
+              <Icon
+                name="paperclip"
+                size={20}
+                color="black"
+                style={{ width: 20,height: 20,color: "black",justifyContent: 'center'}}
+                />
+              <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>附件</Text>
+            </View>
+            <View style={{flexDirection: 'row',flexWrap: 'wrap'}}>
+              {
 
-          <TouchableOpacity onPress={this.selectCopyTo.bind(this)}>
-            <View style={styles.newView}>
+                this.state.oldimg != null && this.state.oldimg.length > 0 ?
+                this.state.oldimg && this.state.oldimg.map((item, index)=> {
+                  return (
+                    <View key={index} style={{padding:10}}>
+                      <Image
+                        resizeMode='cover'
+                        source={{uri:item.Url}}
+                        style={{width: 70,height: 85,}}
+                        />
+                      <Icons name='ios-close'
+                             size={26}
+                             color='#C7254E'
+                             onPress={this.deleteoldImage.bind(this,index)}
+                             style={{width: 28, height: 28,position: 'absolute',top:-3,right:-3}}/>
+                    </View>
+                  )
+                })
+                  : null
+              }
+              {
+                this.state.imageData && this.state.imageData.map((item, index)=> {
+                  return (
+                    <View key={index} style={{padding:10}}>
+                      <Image
+                        resizeMode='cover'
+                        source={{uri:item.uri}}
+                        style={{width: 70,height: 85}}
+                        />
+                      <Icons name='ios-close'
+                             size={26}
+                             color='#C7254E'
+                             onPress={this.deleteImage.bind(this,index)}
+                             style={{width: 28, height: 28,position: 'absolute',top:-3,right:-3}}/>
+                    </View>
+                  )
+                })
+              }
+              {
+                this.state.imageData.length>=3||this.state.oldimg.length>=3||(this.state.imageData.length+this.state.oldimg.length)>=3?
+                  null:<TouchableOpacity onPress={this.uploadImages.bind(this)}>
+                  <View style={styles.addimageView}>
+                    <Icons name='ios-plus-empty'
+                           size={50}
+                           color='#737373'
+                           onPress={this.uploadImages.bind(this)}
+                      />
+                  </View></TouchableOpacity>
+              }
+            </View>
+            <View style={{flexDirection: 'row',flexWrap: 'wrap'}}>
+              {
+                this.state.oldimageData && this.state.oldimageData.map((filesitem, index)=> {
+                  if(filesitem.Name.indexOf(".png")==-1&&filesitem.Name.indexOf(".jpg")==-1&&filesitem.Name.indexOf(".jpeg")==-1){
+                    return (
+                      <TouchableOpacity  key={index} onPress={this.downLoadfiles.bind(this,filesitem.Name,filesitem.DownloadUrl)}>
+                        <View style={{flexDirection: 'row',padding:5}}>
+                          <Icon
+                            name="file"
+                            size={20}
+                            color='#F0AD4E'
+                            style={{width:25}}
+                            />
+                          <Text style={{color:'black',marginLeft:5}}>{filesitem.Name}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                })
+              }
+            </View>
+
+            <View style={{borderColor:'#ECEFF1',borderWidth: 1,marginTop:10}}>
               <View style={styles.tasterView}>
-                {this.state.copyToItem==null?<Text style={[styles.dedailText,{width:Dimensions.get('window').width-60}]}>抄送人：未设置</Text>
-                  :<Text style={[styles.dedailText,{width:Dimensions.get('window').width-60}]}>抄送人：{copyuser.join(',')}</Text>}
+                <Text style={styles.dedailText}>审阅人：
+                  {tasteruser.join(',')}
+                </Text>
               </View>
-
-              <View style={{ alignItems: 'center',justifyContent: 'center',}}>
-                <Icon
-                  name='angle-right'
-                  size={30}
-                  style={{ width: 30,color: "#000"}}
-                  />
-              </View>
-
             </View>
-          </TouchableOpacity>
 
-        </ScrollView>
+            <TouchableOpacity onPress={this.selectCopyTo.bind(this)}>
+              <View style={styles.newView}>
+                <View style={styles.tasterView}>
+                  {this.state.copyToItem==null?<Text style={[styles.dedailText,{width:Dimensions.get('window').width-60}]}>抄送人：未设置</Text>
+                    :<Text style={[styles.dedailText,{width:Dimensions.get('window').width-60}]}>抄送人：{copyuser.join(',')}</Text>}
+                </View>
+
+                <View style={{ alignItems: 'center',justifyContent: 'center',}}>
+                  <Icon
+                    name='angle-right'
+                    size={30}
+                    style={{ width: 30,color: "#000"}}
+                    />
+                </View>
+
+              </View>
+            </TouchableOpacity>
+
+          </ScrollView>
+        </View>:null}
+
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
         <Popup ref={(popup) => { this.popup = popup }}/>
       </View>

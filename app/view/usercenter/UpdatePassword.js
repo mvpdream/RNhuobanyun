@@ -16,12 +16,12 @@ import React, {
     } from 'react-native';
 import styles from "./style";
 import api from "../../network/ApiHelper";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
 
 
 export default class UpdatePassword extends React.Component{
@@ -46,15 +46,25 @@ export default class UpdatePassword extends React.Component{
                 this.props.nav.pop();
               }
             })
-        };
+        }
     };
     render() {
         return (
             <View style={styles.containersw}>
-                <NavToolbar
-                    navIconName={"android-arrow-back"}
-                    title={'修改密码'}
-                    onClicked={() => {this.props.nav.pop();}} />
+                <NavigationBar
+                  style={{height: 55,backgroundColor:'#175898'}}
+                  leftButton={
+                    <View style={styles.navLeftBtn}>
+                          <Icons
+                            name="android-arrow-back"
+                            size={28}
+                            style={{marginLeft:20,paddingRight:20}}
+                            color="white"
+                            onPress={() => {this.props.nav.pop()}}
+                          />
+                        <Text style={styles.rightNavText}>修改密码</Text>
+                       </View>
+                    }/>
 
                 <View style={styles.updatepasView}>
                     <TextInput

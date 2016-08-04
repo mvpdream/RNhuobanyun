@@ -326,7 +326,8 @@ export default class KbArticleDetail extends React.Component{
       creatFlag:false,
       fetchSuccess:false,
       startLoad:false,
-      jsEnabled:true
+      jsEnabled:true,
+      isFetch:false
     };
     _this=this;
 
@@ -348,6 +349,7 @@ export default class KbArticleDetail extends React.Component{
     api.KB.getArticleDetail(Id)
       .then((res)=>{
         loaderHandler.hideLoader();
+        this.setState({isFetch:true});
         if(res.Type==1){
           str=res.Data.FileName;
           if (res.Data && res.Data.FavorUsers.length > 0) {
@@ -462,18 +464,18 @@ export default class KbArticleDetail extends React.Component{
     }
   }
   newcomItem(newcomItems){
-    this.refs.commentList.addnewComment(newcomItems)
+    this.refs.commentList&&this.refs.commentList.addnewComment(newcomItems)
   }
   startTwoComment(twocomCof){
     commentTemp=twocomCof;
-    this.refs.commentInput.startIn(twocomCof,2)
+    this.refs.commentInput&&this.refs.commentInput.startIn(twocomCof,2)
   }
   _handlePress(index) {
     if(index==1){
-      this.refs.commentInput.startIn(commentTemp,2)
+      this.refs.commentInput&&this.refs.commentInput.startIn(commentTemp,2)
     }
     if(index==2){
-      this.refs.commentList.deleteComments(commentTemp,commentIndex)
+      this.refs.commentList&&this.refs.commentList.deleteComments(commentTemp,commentIndex)
     }
   }
   show() {
@@ -488,7 +490,7 @@ export default class KbArticleDetail extends React.Component{
   }
   wbReload(){
     //重新加载webview
-    this.refs.webviewbridge.reload();
+    this.refs.webviewbridge&&this.refs.webviewbridge.reload();
   }
   webViewStart(){
     this.setState({startLoad:true});
@@ -549,8 +551,7 @@ export default class KbArticleDetail extends React.Component{
                       </TouchableOpacity>
                     </View>
                    } />
-
-        <ScrollView ref="scroll" keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>
+        {this.state.isFetch?<ScrollView ref="scroll" keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>
           <View style={{flex:1}}>
             <View style={styles.fileInfoView}>
               <View style={{alignItems: 'center'}}>
@@ -632,7 +633,8 @@ export default class KbArticleDetail extends React.Component{
                 </View>:null
             }
           </View>
-        </ScrollView>
+        </ScrollView>:null}
+
 
 
         <KbMenuView ref="kbMenuView" nav={this.props.nav}/>

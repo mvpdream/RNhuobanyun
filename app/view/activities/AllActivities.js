@@ -16,7 +16,6 @@ import React, {
   Component
 } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 import NavigationBar from 'react-native-navbar';
 import Dimensions from 'Dimensions';
 var {height, width} = Dimensions.get('window');

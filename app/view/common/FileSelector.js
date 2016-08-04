@@ -20,7 +20,6 @@ import React, {
 var Dimensions = require('Dimensions');
 import _ from 'lodash';
 import api from "../../network/ApiHelper";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android.js'
 import styles from "./style";
 var {height, width} = Dimensions.get('window');
 var Icons = require('react-native-vector-icons/Ionicons');

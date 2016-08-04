@@ -17,8 +17,6 @@ import React, {
   } from 'react-native';
 import colorManager from '../common/styles/manager'
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var Dimensions = require('Dimensions');

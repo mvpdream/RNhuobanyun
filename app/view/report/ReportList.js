@@ -15,8 +15,6 @@ import React, {
   TouchableHighlight
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions = require('Dimensions');
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -26,6 +24,8 @@ import ReportRules from './ReportRules';
 import api from "../../network/ApiHelper";
 import Toast from  '@remobile/react-native-toast'
 var dataSource = new ListView.DataSource({rowHasChanged: (row1, row2) => row1.title !== row2.title});
+var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
+var BusyIndicator = require('react-native-busy-indicator');
 
 export default class ReportList extends React.Component {
   constructor(props) {
@@ -43,9 +43,10 @@ export default class ReportList extends React.Component {
 
 ;
   componentDidMount() {
-    //if(this.props.userId==0){
-    //this.fetchData(this.props.reportType,0)
-    //}
+    if(this.props.userId!=0){
+      loaderHandler.showLoader("加载中...");
+    this.fetchData(this.props.reportType,this.props.userId)
+    }
   }
   startLoad(subordinateId){
     this.setState({reportUserId:subordinateId});
@@ -55,6 +56,7 @@ export default class ReportList extends React.Component {
     if(subordinateId!=null){
       api.Report.getReportListByUser(subordinateId, type, this.state.year, this.state.month)
         .then((resData)=> {
+          loaderHandler.hideLoader();
           this.setState({
             reportList: dataSource.cloneWithRows(resData.Data)
           });
@@ -206,6 +208,7 @@ export default class ReportList extends React.Component {
                     />
                 </View>
               </View>
+        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
           </View>
 
     );

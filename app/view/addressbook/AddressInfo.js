@@ -14,8 +14,6 @@ import React, {
   ListView
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import Icons from 'react-native-vector-icons/Ionicons'
 import colorManager from '../common/styles/manager';
@@ -30,6 +28,7 @@ const buttons = ['取消', '存入手机通讯录'];
 const CANCEL_INDEX = 0;
 const DESTRUCTIVE_INDEX = 1;
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
 
 export default class AddressInfo extends React.Component {
   constructor(props) {
@@ -101,12 +100,26 @@ export default class AddressInfo extends React.Component {
     ];
     return (
       <View style={styles.containersw}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          actions={toolbarActions}
-          onActionSelected={this.show.bind(this)}
-          title={'个人资料'}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>个人资料</Text>
+                     </View>
+                   }
+          rightButton={
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.show.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>更多</Text>
+                      </TouchableOpacity>
+                    } />
 
         <ScrollView keyboardShouldPersistTaps={true}>
           <View style={styles.icontainer}>

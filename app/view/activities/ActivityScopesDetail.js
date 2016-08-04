@@ -15,12 +15,12 @@ import React, {
   ScrollView,
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 var {height, widths} = Dimensions.get('window');
+import NavigationBar from 'react-native-navbar';
 
 
 export default class ActivityScopesDetail extends React.Component {
@@ -69,10 +69,21 @@ export default class ActivityScopesDetail extends React.Component {
 
     return (
       <View style={{flex:1,backgroundColor:'white'}}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={'发送范围详情'}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>发送范围详情</Text>
+                     </View>
+                   }/>
         <View style={{flex:1}}>
           {this.state.isFetch&&this.state.UserData.length==0? <View style={styles.noruleViewV}>
             <Icon

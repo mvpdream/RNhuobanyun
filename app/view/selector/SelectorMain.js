@@ -16,8 +16,8 @@ import React, {
   ScrollView
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
 var Dimensions = require('Dimensions');
 import PinYinUsers from './PinYinUsers'
 import DepUsers from './DepUsers'
@@ -117,11 +117,21 @@ export default class SelectorMain extends React.Component {
   render() {
     var selectorConfig=this.state.selectorConfig;
     return (
-      <NavTab ref='navTab' nav={this.props.nav}>
-        <NavToolbar navIconName={"android-arrow-back"}
-                    title={navTitle} nav={this.props.nav}
-                    onClicked={() => {this.props.nav.pop()}}/>
         <View style={{flex:1}}>
+          <NavigationBar
+            style={{height: 55,backgroundColor:'#175898'}}
+            leftButton={
+           <View style={styles.navLeftBtn}>
+              <Icons
+                name="android-arrow-back"
+                size={28}
+                style={{marginLeft:20,paddingRight:20}}
+                color="white"
+                onPress={() => {this.props.nav.pop()}}
+              />
+            <Text style={styles.rightNavText}>{navTitle}</Text>
+           </View>
+         }/>
           {
             selectorConfig.selectorType==2
             ? <ScrollableTabView>
@@ -136,12 +146,7 @@ export default class SelectorMain extends React.Component {
           }
           <BottomView ref="bottomView" selectedItems={this.state.selectItems}/>
         </View>
-      </NavTab>
     );
-  }
-
-  onToolbarClicked() {
-    this.refs['navTab'].openNavDrawer();
   }
 
 ;

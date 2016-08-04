@@ -12,11 +12,11 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
+  TouchableNativeFeedback,
+  Alert
   } from 'react-native';
 import colorManager from '../common/styles/manager'
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import api from "../../network/ApiHelper";
 var Dimensions = require('Dimensions');
@@ -115,19 +115,17 @@ export default class UserCenterMain extends React.Component {
 
 ;
   outlogin(){
-    this.popup.confirm({
-      title: '提示',
-      content: '确定退出登录？',
-      ok: {
-        text:'确定',
-        callback: () => {
+    Alert.alert(
+      '提示',
+      '确定退出登录？',
+      [
+        {text: '取消'},
+        {text: '确定', onPress: () => {
           this.cleanUser();
-        }
-      },
-      cancel: {
-        text: '取消'
-      }
-    });
+        }}
+      ]
+    )
+
   }
   cleanUser() {
     api.User.logout()
@@ -238,11 +236,16 @@ export default class UserCenterMain extends React.Component {
                 />
             </View>
             <View style={[styles.bottomView,{backgroundColor: colorManager.getCurrentStyle().BGCOLOR,marginTop: 15}]}>
-              <TouchableOpacity style={styles.bottomTou} onPress={this.outlogin.bind(this)}>
+              <TouchableNativeFeedback
+
+
+                style={styles.bottomTou}
+                onPress={this.outlogin.bind(this)}
+                >
                 <View style={styles.bottomTouView}>
                   <Text style={{color:"white"}}>退出登录</Text>
                 </View>
-              </TouchableOpacity>
+              </TouchableNativeFeedback>
             </View>
           </ScrollView>
 

@@ -14,13 +14,12 @@ import React, {
   ScrollView
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions = require('Dimensions');
+import NavigationBar from 'react-native-navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
-import NavigationBar from 'react-native-navigation-bar';
+import Icons from 'react-native-vector-icons/Ionicons';
 import ReportRules from './ReportRules';
 import api from "../../network/ApiHelper";
 import ReportList from './MyReportList.js'
@@ -37,16 +36,14 @@ export default class CreatReport extends React.Component {
       year: new Date().getFullYear(),
       dayList: dataSource.cloneWithRows({}),
       monthList: dataSource.cloneWithRows({}),
-      weekList: dataSource.cloneWithRows({})
+      weekList: dataSource.cloneWithRows({}),
+      isFetch:false
     };
   }
 
 ;
   componentDidMount() {
     this.getUserrule();
-   this.refs.dailyLists.startLoad(0);
-    this.refs.weekLists.startLoad(0);
-    this.refs.monthLists.startLoad(0);
   }
 
   getUserrule() {
@@ -55,6 +52,7 @@ export default class CreatReport extends React.Component {
         this.setState({
           remind: resData.remind
         });
+        this.setState({isFetch:true})
       })
   }
 
@@ -67,9 +65,6 @@ export default class CreatReport extends React.Component {
 ;
 render()
 {
-  var toolbarActions = [
-    {title: '查看规则', show: 'always'},
-  ];
   var noruleView = (
     <View style={styles.noruleViewV}>
       <Icon
@@ -82,23 +77,37 @@ render()
   );
   return (
     <View style={{flex:1}}>
-      <NavToolbar
-        navIconName={"android-arrow-back"}
-        title={'写汇报'}
-        actions={toolbarActions}
-        onActionSelected={this.getRules.bind(this)}
-        onClicked={() => {this.props.nav.pop()}}/>
+      <NavigationBar
+        style={{height: 55,backgroundColor:'#175898'}}
+        leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>写汇报</Text>
+                     </View>
+                   }
+        rightButton={
+
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.getRules.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>查看规则</Text>
+                      </TouchableOpacity>
+                    } />
       <ScrollableTabView
         tabBarBackgroundColor='white'
         tabBarUnderlineColor='#3A83E1'
-        tabBarActiveTextColor='#3A83E1'
-        initialPage={this.props.type==null?0:this.props.type}>
+        tabBarActiveTextColor='#3A83E1'>
         <View
           tabLabel="日报"
           style={{flex: 1,backgroundColor:'#ECEFF1'}}
           >
           {
-            this.state.remind.daytime == ""
+            this.state.isFetch?this.state.remind.daytime == ""
               ?
               <View style={styles.norView}>
                 {noruleView}
@@ -106,7 +115,7 @@ render()
               : <ReportList
               ref='dailyLists'
               userId={0}
-              nav={this.props.nav} reportType={0} />
+              nav={this.props.nav} reportType={0} />:null
           }
         </View>
 
@@ -116,12 +125,13 @@ render()
           style={{flex:1,backgroundColor:'#ECEFF1'}}
           >
           {
-            this.state.remind.weektime == ""
+
+            this.state.isFetch?this.state.remind.weektime == ""
               ?
               <View style={styles.norView}>
                 {noruleView}
               </View>
-              : <ReportList ref='weekLists' userId={0} nav={this.props.nav} reportType={1} />
+              : <ReportList ref='weekLists' userId={0} nav={this.props.nav} reportType={1} />:null
           }
 
         </View>
@@ -131,12 +141,12 @@ render()
           style={{flex: 1,backgroundColor:'#ECEFF1'}}
           >
           {
-            this.state.remind.monthtime == ""
+            this.state.isFetch?this.state.remind.monthtime == ""
               ?
               <View style={styles.norView}>
                 {noruleView}
               </View>
-              : <ReportList userId={0} ref='monthLists' nav={this.props.nav} reportType={2} />
+              : <ReportList userId={0} ref='monthLists' nav={this.props.nav} reportType={2} />:null
           }
 
         </View>

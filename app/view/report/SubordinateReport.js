@@ -15,13 +15,12 @@ import React, {
   ScrollView
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions=require('Dimensions');
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Icons from 'react-native-vector-icons/Ionicons';
+import NavigationBar from 'react-native-navbar';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
-import NavigationBar from 'react-native-navigation-bar';
 import ReportRules from './ReportRules';
 import api from "../../network/ApiHelper";
 var DialogAndroid = require('react-native-dialogs');
@@ -94,9 +93,9 @@ export default class SubordinateReport extends React.Component{
             month: new Date().getMonth() + 1,
             year: new Date().getFullYear()
           });
-          this.refs.dailyLists.startLoad(this.state.subordinateId);
-          this.refs.weekLists.startLoad(this.state.subordinateId);
-          this.refs.monthLists.startLoad(this.state.subordinateId);
+          this.refs.dailyLists&&this.refs.dailyLists.startLoad(this.state.subordinateId);
+          this.refs.weekLists&&this.refs.weekLists.startLoad(this.state.subordinateId);
+          this.refs.monthLists&&this.refs.monthLists.startLoad(this.state.subordinateId);
         },
         negativeText: "取消",
         onNegative:()=>{this.cancelGet()},
@@ -118,12 +117,27 @@ export default class SubordinateReport extends React.Component{
     ];
     return (
       <View style={{flex:1}}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={'下属的汇报'}
-          actions={toolbarActions}
-          onActionSelected={this.getUncommittedReport.bind(this)}
-          onClicked={() => {this.props.nav.pop()}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>下属的汇报</Text>
+                     </View>
+                   }
+          rightButton={
+
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.getUncommittedReport.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>提交情况</Text>
+                      </TouchableOpacity>
+                    } />
 
         <ScrollableTabView
           tabBarBackgroundColor='white'

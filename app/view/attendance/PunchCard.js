@@ -40,6 +40,7 @@ var mac="";
 var name="";
 var i=0;
 import Popup from 'react-native-popup';
+var Bounceable = require("react-native-bounceable");
 
 export default class PunchCard extends React.Component{
   constructor(props){
@@ -359,19 +360,31 @@ export default class PunchCard extends React.Component{
                 }
 
                 {
-                  this.state.resData.CanCheckIn&&this.state.resData.CheckType!=2?this.state.resData.CheckInRange?this.state.resData.CheckDescription=="未到下班时间"?<View style={styles.PuCardCont}>
+                  this.state.resData.CanCheckIn&&this.state.resData.CheckType!=2?
+                    this.state.resData.CheckInRange?this.state.resData.CheckDescription=="未到下班时间"?
+                    <View style={styles.PuCardCont}>
+                      <Bounceable
+                        onPress={this.punchCardFun.bind(this,false)}
+                        level={1.1}>
                     <TouchableOpacity onPress={this.punchCardFun.bind(this,false)} activeOpacity={0.8}>
                       <View style={styles.PuCardBtn}><Text style={styles.PuCardBtnText}>{this.state.resData.CheckDescription}</Text>
                         <Text style={[styles.PuCardBtnText,{fontSize:18}]}>确认打卡?</Text></View>
                     </TouchableOpacity>
+                      </Bounceable>
+
                     <View style={styles.PuCardOkView}>
                       <View style={styles.cardText}><Text textAlign="center" style={[styles.PuCardDateTexts,{color:'#000000'}]}> 已进入打卡范围：{this.state.resData.Address}</Text></View>
                     </View>
+
                   </View>:<View style={styles.PuCardCont}>
+                      <Bounceable
+                        onPress={this.punchCardFun.bind(this,false)}
+                        level={1.1}>
                     <TouchableOpacity onPress={this.punchCardFun.bind(this,false)} activeOpacity={0.8}>
                       <View style={styles.PuCardBtn}><Text style={[styles.PuCardBtnText,{fontSize:18}]}>{this.state.resData.CheckDescription}</Text>
                         <Text style={styles.PuCardBtnText}>{this.state.nowTime}</Text></View>
                     </TouchableOpacity>
+                      </Bounceable>
                     <View style={styles.PuCardOkView}>
                       <View style={styles.cardText}><Text textAlign="center" style={[styles.PuCardDateTexts,{color:'#000000'}]}> 已进入打卡范围：{this.state.resData.Address}</Text></View>
                     </View>

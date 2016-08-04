@@ -16,9 +16,9 @@ import React, {
   Dimensions
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import Icon from 'react-native-vector-icons/Ionicons';
 import api from "../../network/ApiHelper";
+import Icons from 'react-native-vector-icons/Ionicons';
+import NavigationBar from 'react-native-navbar';
 
 export default class UncommittedReport extends React.Component {
   constructor(props) {
@@ -64,7 +64,21 @@ export default class UncommittedReport extends React.Component {
   render() {
     return (
       <View style={{flex:1}}>
-        <NavToolbar navIconName={"android-arrow-back"} title={'汇报提交情况'} onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>汇报提交情况</Text>
+                     </View>
+                   }/>
         <View style={{flex:1,backgroundColor:'#ECEFF1'}}>
             <ListView
               dataSource={this.state.dataSource}

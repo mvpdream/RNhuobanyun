@@ -147,7 +147,6 @@ dependencies {
     compile project(':react-native-dialogs')
     compile project(':react-native-contacts')
     compile project(':react-native-image-zoom')
-    compile project(':react-native-encryption-library')
     compile project(':react-native-fs')
     compile project(':react-native-webview-bridge')
     compile project(':reactamaplocation')

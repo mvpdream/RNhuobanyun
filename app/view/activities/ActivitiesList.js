@@ -20,8 +20,6 @@ import React, {
   CameraRoll
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Dimensions from 'Dimensions';
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -335,7 +333,6 @@ export default class ActivitiesList extends React.Component {
     this.state.page= 1;
     firstLoad=true;
     loaderHandler.showLoader("加载中...");
-    this.getNotice();
     this.getActivities(this.props.actType);
   };
   componentDidUpdate(){

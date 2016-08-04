@@ -16,8 +16,6 @@ import React, {
   ProgressBarAndroid
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -28,6 +26,8 @@ import ReportRules from './ReportRules';
 import _ from 'lodash';
 import Toast from  '@remobile/react-native-toast'
 var firstLoad=false;
+var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
+var BusyIndicator = require('react-native-busy-indicator');
 
 var getSectionData = (dataBlob, sectionID) => {
   return dataBlob[sectionID];
@@ -66,6 +66,7 @@ export default class ReceiveReportList extends React.Component {
     this.state.AllData =[];
     this.state.page= 1;
     firstLoad=true;
+    loaderHandler.showLoader("加载中...");
     this.fetchData(this.props.type);
   };
   creatData(Listdata){
@@ -101,6 +102,7 @@ export default class ReceiveReportList extends React.Component {
   fetchData(type) {
     api.Report.receivedReportList(type,this.state.page)
       .then((resData)=> {
+        loaderHandler.hideLoader();
         if(resData.Data==null&&firstLoad){
           //第一次加载，且没有数据的时候
           this.setState({hasActData:false});
@@ -277,6 +279,7 @@ export default class ReceiveReportList extends React.Component {
             <Text style={styles.noruleViewText}>暂无相关数据</Text>
           </View>
         }
+        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>
     );
   }

@@ -109,12 +109,14 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
       setTimeout(()=> {
         _quitStatus = false;
       }, 2000);
-
       return true;
-
     }
   }
-  if(_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id!="FileSelector"||_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id=="ActivitiesDetail"){
+  if(_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id!="FileSelector"){
+    _navigator.pop();
+  }
+  else if(_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id=="ActivitiesDetail"){
+    dismissKeyboard();
     _navigator.pop();
   }
   return true;

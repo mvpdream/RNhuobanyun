@@ -48,7 +48,7 @@ export default class AttendanceMain extends React.Component{
     isPunchOk=(isOk)=>{
       //刷新我的考勤记录
       if(isOk!=null){
-        if(isOk){
+        if(isOk&&this.refs.myAttendance){
           this.refs.myAttendance.getMyData(myDate.getMonth()+1)
         }
       }

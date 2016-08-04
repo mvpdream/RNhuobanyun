@@ -14,8 +14,6 @@ import React, {
   Linking
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions = require('Dimensions');
 import PinYinAddress from './PinYinAddress'
 import Icon from 'react-native-vector-icons/Ionicons'

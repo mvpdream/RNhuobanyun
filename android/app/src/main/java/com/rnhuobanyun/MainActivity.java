@@ -12,7 +12,6 @@ import com.aakashns.reactnativedialogs.ReactNativeDialogsPackage;
 import android.content.Intent;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import com.image.zoom.ReactImageZoom;
-import com.chinaztt.encapsulation.EncryptionReactPackager;
 import com.rnfs.RNFSPackage;
 import com.github.alinz.reactnativewebviewbridge.WebViewBridgePackage;
 import com.xiaobu.amap.AMapLocationReactPackage;
@@ -55,7 +54,6 @@ public class MainActivity extends ReactActivity {
             new VectorIconsPackage(),
             new ReactNativeContacts(),
             new ReactImageZoom(),
-            new EncryptionReactPackager(),
             new RNFSPackage(),
             new WebViewBridgePackage(),
             new AndroidWifiPackage(),

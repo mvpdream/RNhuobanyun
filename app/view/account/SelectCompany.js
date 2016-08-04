@@ -18,7 +18,7 @@ import React, {
   Alert
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
+import NavigationBar from 'react-native-navbar';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from "../../network/ApiHelper";
 import CompanyCell from "./CompanyCell.js"
@@ -41,6 +41,7 @@ export default class SelectCompany extends React.Component {
 
 ;
   componentDidMount() {
+    debugger;
     loaderHandler.showLoader("加载中");
     api.Company.getCompanyList()
       .then((resDate)=> {
@@ -154,7 +155,21 @@ export default class SelectCompany extends React.Component {
   render() {
     return (
       <View style={styles.recontainer}>
-        <NavToolbar navIconName={"android-arrow-back"} onClicked={() => {this.props.nav.pop();}} title={'选择企业'}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icon
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>选择企业</Text>
+                     </View>
+                   }/>
         <View style={styles.rescontainer}>
           <View style={{flexDirection:'row',flex:1,paddingTop:10}}>
             <ListView
@@ -164,7 +179,6 @@ export default class SelectCompany extends React.Component {
           </View>
           <View
             style={{flexDirection:'row',justifyContent: 'center',backgroundColor:'#dddddd',borderColor: '#B1B0B0',borderWidth: 1,}}>
-
             <TouchableOpacity style={styles.companyTous} onPress={this.creatCompany.bind(this)}>
               <View style={styles.selcompbutton}>
                 <Text style={{fontSize:16,color:'white'}}>创建企业</Text>

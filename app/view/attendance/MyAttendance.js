@@ -264,6 +264,7 @@ export default class MyAttendance extends React.Component{
 
 
               </View>
+              <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white'/>
 
           </View>
         );

@@ -14,12 +14,12 @@ import React, {
   ListView
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import api from "../../network/ApiHelper";
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
 
 
 
@@ -60,16 +60,29 @@ export default class UserInfo extends React.Component {
     ];
     return (
       <View style={styles.containersw}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          actions={toolbarActions}
-          onActionSelected={this.editUser.bind(this)}
-          title={'个人资料'}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>个人资料</Text>
+                     </View>
+                   }
+          rightButton={
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.editUser.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>编辑</Text>
+                      </TouchableOpacity>
+                    } />
         <ScrollView keyboardShouldPersistTaps={true}>
           <View style={styles.container}>
               <Image
-                //source={{uri: 'https://resource-huobanyun-cn.alikunlun.com/3.1.142/content/images/avatar_default.jpg'}}
                 source={{uri:this.state.user.Avatar}}
                 style={styles.thumbnail}
                 />

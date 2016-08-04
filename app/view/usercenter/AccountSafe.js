@@ -14,11 +14,11 @@ import React, {
     ListView
     } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
 
 
 export default class AccountSafe extends React.Component{
@@ -43,10 +43,20 @@ export default class AccountSafe extends React.Component{
     render() {
         return (
             <View style={styles.containersw}>
-                <NavToolbar
-                    navIconName={"android-arrow-back"}
-                    title={'帐号安全'}
-                    onClicked={() => {this.props.nav.pop();}} />
+                <NavigationBar
+                  style={{height: 55,backgroundColor:'#175898'}}
+                  leftButton={
+                    <View style={styles.navLeftBtn}>
+                          <Icons
+                            name="android-arrow-back"
+                            size={28}
+                            style={{marginLeft:20,paddingRight:20}}
+                            color="white"
+                            onPress={() => {this.props.nav.pop()}}
+                          />
+                        <Text style={styles.rightNavText}>帐号安全</Text>
+                       </View>
+                    }/>
 
                 <TouchableOpacity onPress={this.updatePas.bind(this)}>
                     <View style={[styles.usersafeView,{marginTop:3}]}>

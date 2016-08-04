@@ -17,7 +17,6 @@ import React, {
   Alert,
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
@@ -33,6 +32,9 @@ var _this=null;
 var alluser=[];
 var cellthis=null;
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
+import Popup from 'react-native-popup';
 
 //标题字母
 class SectionHeader extends Component {
@@ -167,51 +169,65 @@ export default class ExportAddress extends React.Component {
     var newaddress = _this.state.selectedItem.map((item)=> {
         return item.Id
       });
+    var newAddressNames=_this.state.selectedItem.map((item)=> {
+      return item.Name
+    });
     if(newaddress.length>0){
-      Contacts.getAll((err, contacts) => {
-        var that=this;
-        if(err && err.type === 'permissionDenied'){
-          Toast.show("获取联系人失败","short");
-        } else {
-          loaderHandler.showLoader("请稍等。。。");
-          api.OS.groupImportUserInfo(newaddress)
-            .then((resData)=>{
-              var duplicatedUsers=[];
-              var successUsers=[];
-              for(var s=0;s<resData.Data.length;s++){
-                var temp=_.find(contacts,"givenName",resData.Data[s].givenName);
-                if(!temp){
-                  that.saveaddress(resData.Data[s]);
-                  successUsers.push(resData.Data[s]);
-                }
-                else{
-                  duplicatedUsers.push(temp.givenName);
-                }
-              }
-              if(duplicatedUsers.length>0){
-                loaderHandler.hideLoader();
-                Alert.alert(
+      debugger;
+      Alert.alert(
                   '提示',
-                  `成功导出${successUsers.length}位联系人\n${duplicatedUsers.length}位由于重复被忽略：${duplicatedUsers.join(',')}`,
+                  `确定导出${newAddressNames.join(",")}\n${newaddress.length}位联系人?`,
                   [
-                    {text: '确定'}
-                  ]
-                )
-              }
-              else{
-                loaderHandler.hideLoader();
-                Alert.alert(
-                  '提示',
-                  `导出失败！`,
-                  [
-                    {text: '确定'}
-                  ]
-                )
-              }
-            });
+                    {text: '取消'},
+                    {text: '确定', onPress: () => {
+                      Contacts.getAll((err, contacts) => {
+                        var that=this;
+                        if(err && err.type === 'permissionDenied'){
+                          Toast.show("获取联系人失败","short");
+                        } else {
+                          loaderHandler.showLoader("正在导出。。。");
+                          api.OS.groupImportUserInfo(newaddress)
+                            .then((resData)=>{
+                              var duplicatedUsers=[];
+                              var successUsers=[];
+                              for(var s=0;s<resData.Data.length;s++){
+                                var temp=_.find(contacts,"givenName",resData.Data[s].givenName);
+                                if(!temp){
+                                  that.saveaddress(resData.Data[s]);
+                                  successUsers.push(resData.Data[s]);
+                                }
+                                else{
+                                  duplicatedUsers.push(temp.givenName);
+                                }
+                              }
+                              if(duplicatedUsers.length>0){
+                                loaderHandler.hideLoader();
+                                Alert.alert(
+                                  '提示',
+                                  `成功导出${successUsers.length}位联系人\n${duplicatedUsers.length}位由于重复被忽略：${duplicatedUsers.join(',')}`,
+                                  [
+                                    {text: '确定'}
+                                  ]
+                                )
+                              }
+                              else{
+                                loaderHandler.hideLoader();
+                                Alert.alert(
+                                  '提示',
+                                  `导出失败！`,
+                                  [
+                                    {text: '确定'}
+                                  ]
+                                )
+                              }
+                            });
 
-        }
-      });
+                        }
+                      });
+                    }}
+                  ]
+                );
+
     }
     else{
       loaderHandler.hideLoader();
@@ -226,16 +242,23 @@ export default class ExportAddress extends React.Component {
 
   };
   render() {
-    var toolbarActions = [
-
-    ];
     return (
       <View style={{flex:1}}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={'导出联系人'}
-          actions={toolbarActions}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+             <View style={styles.navLeftBtn}>
+             <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                <Icons
+                  name="android-arrow-back"
+                  size={28}
+                  color="white"
+                  onPress={() => {this.props.nav.pop()}}
+                />
+                 </TouchableOpacity>
+                 <Text numberOfLines={1} style={styles.navLeftText}>导出联系人</Text>
+             </View>
+           }/>
       <AlphabetListView
         data={this.state.data}
         cell={Cell}
@@ -251,6 +274,7 @@ export default class ExportAddress extends React.Component {
             </TouchableOpacity>
           </View>
         </View>
+        <Popup ref={(popup) => { this.popup = popup }}/>
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
 
         </View>

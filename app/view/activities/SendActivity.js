@@ -17,7 +17,6 @@ import React, {
   Picker
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -30,6 +29,7 @@ var imageData=[];
 var DialogAndroid = require('react-native-dialogs');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
+import NavigationBar from 'react-native-navbar';
 
 
 export default class SendActivity extends React.Component {
@@ -255,18 +255,29 @@ export default class SendActivity extends React.Component {
     }
   }
   render() {
-    var toolbarActions = [
-      {title: '发送', show: 'always'},
-    ];
     return (
 
       <View style={{flex:1,backgroundColor:'white'}}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={this.props.type==0?"发分享":"发公告"}
-          actions={toolbarActions}
-          onActionSelected={this.submitActivity.bind(this)}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>{this.props.type==0?"发分享":"发公告"}</Text>
+                     </View>
+                   }
+          rightButton={
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.submitActivity.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>发送</Text>
+                      </TouchableOpacity>
+                    } />
 
         <View style={{height:height}}>
         <View>

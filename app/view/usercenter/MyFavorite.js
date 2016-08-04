@@ -16,31 +16,37 @@ import React, {
   ListView,
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import ActivitiesList from '../activities/ActivitiesList.js'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
 
 export default class MyFavorite extends React.Component {
   constructor(props) {
     super(props);
     const nav = this.props.nav;
-    this.state = {
-    };
-    };
-    componentDidMount(){
-    };
+    this.state = {};
+  };
 
     render()
     {
       return (
         <View style={styles.containersw}>
-          <NavToolbar
-            navIconName={"android-arrow-back"}
-            title={'我赞过的'}
-            onClicked={() => {this.props.nav.pop();}}
-            />
+          <NavigationBar
+            style={{height: 55,backgroundColor:'#175898'}}
+            leftButton={
+                    <View style={styles.navLeftBtn}>
+                          <Icons
+                            name="android-arrow-back"
+                            size={28}
+                            style={{marginLeft:20,paddingRight:20}}
+                            color="white"
+                            onPress={() => {this.props.nav.pop()}}
+                          />
+                        <Text style={styles.rightNavText}>我赞过的</Text>
+                       </View>
+                    }/>
           <ActivitiesList  nav={this.props.nav} actType={128}/>
         </View>
 

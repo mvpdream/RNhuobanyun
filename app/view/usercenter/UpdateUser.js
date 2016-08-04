@@ -16,8 +16,6 @@ import React, {
   DatePickerAndroid
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import api from "../../network/ApiHelper";
 var Dimensions = require('Dimensions');
@@ -25,6 +23,8 @@ var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import TextField from 'react-native-md-textinput';
 import {formatter} from '../../tools/DateHelper'
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons'
 
 
 export default class UpdateUser extends React.Component {
@@ -115,12 +115,26 @@ export default class UpdateUser extends React.Component {
     ];
     return (
       <View style={styles.containersw}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          actions={toolbarActions}
-          onActionSelected={this.saveUser.bind(this)}
-          title={'个人资料'}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>个人资料</Text>
+                     </View>
+                   }
+          rightButton={
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.saveUser.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>保存</Text>
+                      </TouchableOpacity>
+                    } />
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={true}>
           <View style={styles.updateView}>
             <View style={styles.updateTextInput}>

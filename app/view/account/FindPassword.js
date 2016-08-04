@@ -16,10 +16,11 @@ import React, {
     } from 'react-native';
 import styles from "./style";
 import api from "../../network/ApiHelper";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons';
 
 
 export default class FindPassword extends React.Component{
@@ -60,7 +61,21 @@ export default class FindPassword extends React.Component{
     render(){
         return(
             <View style={styles.recontainer}>
-                <NavToolbar navIconName={"android-arrow-back"} title={'密码找回'}  nav={this.props.nav} onClicked={() => {this.props.nav.pop();}}/>
+                <NavigationBar
+                  style={{height: 55,backgroundColor:'#175898'}}
+                  leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>密码找回</Text>
+                     </View>
+                   }/>
                 <View style={styles.container}>
                 <View>
                     <View style={this.state.selectText?[styles.adduserInput,{borderColor:'#0683F9',borderWidth: 1.2}]:styles.adduserInput}>

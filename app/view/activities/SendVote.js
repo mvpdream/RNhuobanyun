@@ -18,7 +18,6 @@ import React, {
   } from 'react-native';
 
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -30,7 +29,7 @@ var voteTextArr=[];
 import Toast from  '@remobile/react-native-toast'
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
-
+import NavigationBar from 'react-native-navbar';
 
 export default class SendVote extends React.Component {
   constructor(props) {
@@ -154,18 +153,28 @@ export default class SendVote extends React.Component {
     this.setState({expired_time:itemValue});
   }
   render() {
-    var toolbarActions = [
-      {title: '发送', show: 'always'},
-    ];
     return (
-
       <View style={{flex:1,backgroundColor:'white'}}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={"发投票"}
-          actions={toolbarActions}
-          onActionSelected={this.submitVote.bind(this)}
-          onClicked={() => {this.props.nav.pop();}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>发投票</Text>
+                     </View>
+                   }
+          rightButton={
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.submitVote.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>发送</Text>
+                      </TouchableOpacity>
+                    } />
         <ScrollView keyboardShouldPersistTaps={true}>
         <View style={{flex:1}}>
           <TouchableOpacity onPress={this.sendscope.bind(this)}>

@@ -15,14 +15,13 @@ import React, {
   ProgressBarAndroid
   } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
-import NavigationBar from 'react-native-navigation-bar';
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons';
 import ReportRules from './ReportRules';
 import _ from 'lodash';
 import ReceiveReportList from './ReceiveReportList.js'
@@ -58,9 +57,6 @@ export default class ReceiveReport extends React.Component {
   };
 
   render() {
-    var toolbarActions = [
-      {title: '提交情况', show: 'always'},
-    ];
     var noruleView = (
       <View style={styles.noruleViewV}>
         <Icon
@@ -73,12 +69,26 @@ export default class ReceiveReport extends React.Component {
     );
     return (
       <View style={{flex: 1,backgroundColor:'#E4E4E4',}}>
-        <NavToolbar
-          navIconName={"android-arrow-back"}
-          title={'收到的汇报'}
-          actions={toolbarActions}
-          onActionSelected={this.getUncommittedReport.bind(this)}
-          onClicked={() => {this.props.nav.pop()}}/>
+        <NavigationBar
+          style={{height: 55,backgroundColor:'#175898'}}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>收到的汇报</Text>
+                     </View>
+                   }
+          rightButton={
+                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.getUncommittedReport.bind(this)}>
+                    <Text numberOfLines={1} style={styles.rightNavText}>提交情况</Text>
+                      </TouchableOpacity>
+                    } />
 
 
         <ScrollableTabView

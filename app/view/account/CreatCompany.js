@@ -12,10 +12,11 @@ import React, {
     } from 'react-native';
 import styles from "./style";
 import api from "../../network/ApiHelper";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
 var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import Toast from  '@remobile/react-native-toast'
+import NavigationBar from 'react-native-navbar';
+import Icons from 'react-native-vector-icons/Ionicons';
 
 
 export default class CreatCompany extends React.Component{
@@ -33,14 +34,28 @@ export default class CreatCompany extends React.Component{
         .then((resData)=>{
               Toast.show(resData.Data,"short");
                 this.props.nav.push({
-                    id: 'SelectCompany',
+                    id: 'SelectCompany'
                 });
         });
     };
     render(){
         return(
             <View style={styles.recontainer}>
-                <NavToolbar navIconName={"android-arrow-back"} title={'创建企业'}  nav={this.props.nav} onClicked={() => {this.props.nav.pop();}}/>
+                <NavigationBar
+                  style={{height: 55,backgroundColor:'#175898'}}
+                  leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>创建企业</Text>
+                     </View>
+                   }/>
                 <View style={styles.container}>
                     <View style={styles.creatcom}>
                         <Text style={styles.titletext}>企业全称</Text>

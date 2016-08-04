@@ -13,8 +13,6 @@ import React, {
     ListView,
     } from 'react-native';
 import styles from "./style";
-import NavToolbar from '../navigation/navToolBar/NavToolBar.android';
-import NavTab from '../navigation/navTab/NavTab.android';
 import NavigationBar from 'react-native-navbar';
 var Dimensions=require('Dimensions');
 import api from "../../network/ApiHelper";
