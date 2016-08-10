@@ -1,8 +1,8 @@
 'use strict';
 
-const SERVER = 'http://i-test.huobanyun.cn';
+//const SERVER = 'http://i-test.huobanyun.cn';
 //const SERVER = 'http://i.huobanyun.cn';
-//const SERVER = 'http://192.168.0.155';
+const SERVER = 'http://192.168.0.150';
 //const SERVER = 'http://i-preview.huobanyun.cn';
 const MOBILE_API = `${SERVER}/Mobile`;
 

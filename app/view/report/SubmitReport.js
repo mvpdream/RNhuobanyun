@@ -76,7 +76,7 @@ export default class SubmitReport extends React.Component {
       api.Report.getReportDetail(this.props.reportItems.Id)
         .then((resData)=> {
           loaderHandler.hideLoader();
-          this.setState({isFetch:true});
+
             if(resData.Data.IsLocked==1){
               //锁定 不显示保存和提交按钮
               this.setState({islock:true});
@@ -96,16 +96,17 @@ export default class SubmitReport extends React.Component {
             }
             else{
             this.setState({oldimg:oldimg});}
+          this.setState({isFetch:true});
 
     });}
     loaderHandler.showLoader("加载中...");
     api.Report.getReportTemplate(this.props.reportItems.type, this.props.reportItems.dateTarget)
       .then((resData)=> {
         loaderHandler.hideLoader();
-        this.setState({isFetch:true});
         this.setState({
           templateItem: resData.Data,
         });
+        this.setState({isFetch:true});
       });
     api.Report.getTasterAndRules()
       .then((resData)=> {
@@ -191,7 +192,6 @@ export default class SubmitReport extends React.Component {
         }
         this.state.reportCon.push(this.state["reportCon" + i]);
       }
-      ;
       body = this.state.reportCon.join('#huobanyunReport#')
     }
     else
@@ -265,8 +265,10 @@ export default class SubmitReport extends React.Component {
         istemp=0;
       }
       var attachmentsId=[];
-      if(this.state.oldimageData!=null){
-        attachmentsId = this.state.oldimageData.map((item, index)=> {
+      if(this.state.oldimg!=null){
+        let imgArr=[];
+        imgArr=this.state.oldimg.concat(this.state.imageData);
+        attachmentsId = imgArr.map((item, index)=> {
           return (item.Id)
         });
       }
@@ -287,12 +289,6 @@ export default class SubmitReport extends React.Component {
             this.props.updateState(true,false);
           }
           this.props.nav.pop();
-          //this.props.nav.immediatelyResetRouteStack([{
-          //  id: 'CreatReport',
-          //  type:reportData.type,
-          //  curryear:this.props.reportItems.curryear,
-          //  currmonth:this.props.reportItems.currmonth
-          //}]);
         })
         .catch(()=>{loaderHandler.hideLoader();Toast.show('服务器异常，请检查网络',"short");})
     }
@@ -437,7 +433,7 @@ export default class SubmitReport extends React.Component {
                       <Image
                         resizeMode='cover'
                         source={{uri:item.Url}}
-                        style={{width: 70,height: 85,}}
+                        style={{width: 70,height: 85}}
                         />
                       <Icons name='ios-close'
                              size={26}

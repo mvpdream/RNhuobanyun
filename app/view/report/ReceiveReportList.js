@@ -54,7 +54,7 @@ export default class ReceiveReportList extends React.Component {
       hasMore:false,
       firstLoad:false,
       ishave:true,
-      ishavedata:true,
+      ishavedata:false,
       isnodata:false,
       isOpen:false,
       isRefreshControl:false,
@@ -118,6 +118,9 @@ export default class ReceiveReportList extends React.Component {
         if(newarr&&newarr.length>0&&newarr.length<35){
           this.setState({hasMore:false});
         }
+        if(resData.Data&&resData.Data.length!=0){
+          this.setState({hasActData:true})
+        }
 
         if(!firstLoad){
           var oldDataLen=newarr&&newarr.length;
@@ -134,11 +137,18 @@ export default class ReceiveReportList extends React.Component {
           if(newarr&&newarr.length==oldDataLen){
             Toast.show('没有数据咯',"short");
             this.setState({hasMore:false});
+            this.setState({
+              ishavedata:false,
+              isRefreshControl:false,
+              allList: dataSource.cloneWithRowsAndSections(this.state.newdata.blobData,this.state.newdata.sectionIds,this.state.newdata.rowIds),
+              hasMore:false
+            });
             return;
           }
         }
 
         this.setState({
+          ishavedata:false,
           isRefreshControl:false,
           allList: dataSource.cloneWithRowsAndSections(this.state.newdata.blobData,this.state.newdata.sectionIds,this.state.newdata.rowIds)
         });
@@ -147,7 +157,7 @@ export default class ReceiveReportList extends React.Component {
   }
   renderFooter() {
     return (
-    this.state.hasMore&&<View ref='footerView' style={styles.footerView}>
+    this.state.ishavedata&&<View ref='footerView' style={styles.footerView}>
       <View style={{width:30,height:30,justifyContent: 'center'}}><ProgressBarAndroid styleAttr='Inverse' color='blue' /></View>
       <Text style={styles.footerText}>
         数据加载中……
@@ -252,7 +262,6 @@ export default class ReceiveReportList extends React.Component {
   render() {
     return (
       <View style={{flex: 1,backgroundColor:'#E4E4E4'}}>
-        {this.state.hasActData?
           <ListView
           dataSource={this.state.allList}
           renderRow={this.reportItem.bind(this)}
@@ -269,15 +278,16 @@ export default class ReceiveReportList extends React.Component {
                 colors={['#ffaa66cc', '#ff00ddff', '#ffffbb33', '#ffff4444']}
               />
              }
-          />:
-          <View style={styles.noruleViewV}>
+          />
+        {!this.state.hasActData?
+          <View style={styles.noDataView}>
             <Icon
               name="exclamation-circle"
               size={50}
               color="#717171"
               />
-            <Text style={styles.noruleViewText}>暂无相关数据</Text>
-          </View>
+            <Text style={styles.noDataViewText}>暂无汇报</Text>
+          </View>:null
         }
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>

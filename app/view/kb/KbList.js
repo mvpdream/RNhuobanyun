@@ -54,7 +54,8 @@ export default class KbList extends React.Component{
           newName:"",
           isLock:false,
           isRefreshControl:false,
-          creatFlag:false
+          creatFlag:false,
+          hasKbData:false
         };
     };
   componentDidMount(){
@@ -88,7 +89,7 @@ export default class KbList extends React.Component{
             resData:res.Data
           });
           if(this.state.resData.length==0){
-            this.setState({hasFile:false});
+            this.setState({hasFile:false,isRefreshControl:false});
 
           }else{
             this.setState({
@@ -104,6 +105,7 @@ export default class KbList extends React.Component{
           if(this.props.isSuccess!=null){
             this.props.isSuccess(false)
           }
+          this.setState({hasFile:false,isRefreshControl:false});
           Toast.show(res.Data,"short");
         }
       }).catch((err) => {
@@ -616,17 +618,7 @@ export default class KbList extends React.Component{
     var newStr=itemData&&itemData.Type==1||itemData&&itemData.Type==2?str:itemData&&itemData.FileName;
       return (
             <View style={{flex:1,backgroundColor:'white'}}>
-              {!this.state.hasFile?
-                <View style={[styles.noFile,{flex:1}]}>
-                  <View style={styles.noFile}>
-                    <Icon
-                      name="exclamation-circle"
-                      size={35}
-                      color="#A5A2A2"
-                      />
-                    <Text style={{fontSize:14}}>没有文件</Text>
-                  </View>
-                </View>:
+
                 <View style={styles.listViewSty}>
                   {
                     this.props.type!='search'?
@@ -651,8 +643,19 @@ export default class KbList extends React.Component{
                       />
                   }
 
+                  {!this.state.hasFile?
+                    <View style={styles.noDataView}>
+                      <Icon
+                        name="exclamation-circle"
+                        size={50}
+                        color="#717171"
+                        />
+                      <Text style={styles.noDataViewText}>没有文件</Text>
+                    </View>:null
+                  }
+
                 </View>
-              }
+
               <ActionSheet
                 ref={(o) => this.ActionSheet = o}
                 options={itemData&&itemData.Type==1||itemData&&itemData.Type==2?buttons:button}

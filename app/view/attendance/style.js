@@ -228,6 +228,23 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width:Dimensions.get('window').width-25
+  },
+  navLeftBtn:{
+    justifyContent: 'center',
+    height:55,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  navLeftText:{
+    width:Dimensions.get('window').width*0.5,
+    color: 'white',
+    fontSize:18
+  },
+  touIcon:{
+    height:55,
+    width:35,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 
 

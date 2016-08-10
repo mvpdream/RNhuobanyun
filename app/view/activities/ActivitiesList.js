@@ -71,7 +71,6 @@ class Cell extends Component {
       type:this.props.actType
   })}
   getIsReceipt(isReceipt){
-    debugger;
     if(isReceipt){
       receipt=true;
       this.setState({itemText:"已回执"});
@@ -318,7 +317,7 @@ export default class ActivitiesList extends React.Component {
       allList: activityData.cloneWithRows({}),
       allLists: activityData.cloneWithRows({}),
       ishave:true,
-      ishavedata:true,
+      ishavedata:false,
       isnodata:false,
       isOpen:false,
       isRefreshControl:false,
@@ -370,18 +369,27 @@ export default class ActivitiesList extends React.Component {
         if(this.state.AllData.length>0&&this.state.AllData.length<5){
           this.setState({hasMore:false});
         }
+        if(resData.Data&&resData.Data.length!=0){
+          this.setState({hasActData:true})
+        }
         if(!firstLoad){
           var oldDataLen=this.state.AllData.length;
           this.state.AllData = this.state.AllData.concat(resData.Data);
           if(this.state.AllData.length==oldDataLen){
             Toast.show("没有数据咯","short");
-            this.setState({hasMore:false});
+            this.setState({
+              ishavedata:false,
+              isRefreshControl:false,
+              hasMore:false,
+              allList:activityData.cloneWithRows(this.state.AllData)
+            });
             return;
           }
         }
         favorflag=false;
         comflag=false;
         this.setState({
+          ishavedata:false,
           isRefreshControl:false,
           allList:activityData.cloneWithRows(this.state.AllData)
         });
@@ -390,7 +398,7 @@ export default class ActivitiesList extends React.Component {
   };
   renderFooter() {
       return (
-        this.state.hasMore&&<View ref='footerView' style={styles.footerView}>
+        this.state.ishavedata&&<View ref='footerView' style={styles.footerView}>
             <View style={{width:30,height:30,justifyContent: 'center'}}><ProgressBarAndroid styleAttr='Inverse' color='blue' /></View>
             <Text style={styles.footerText}>
               数据加载中……
@@ -505,7 +513,7 @@ export default class ActivitiesList extends React.Component {
   renderContent(){
     return(
         <View style={styles.Acontainer}>
-          {this.state.hasActData? <ListView
+            <ListView
             dataSource={this.state.allList}
             ref="list"
             renderRow={this.activityItem.bind(this)}
@@ -521,17 +529,17 @@ export default class ActivitiesList extends React.Component {
                 colors={['#ffaa66cc', '#ff00ddff', '#ffffbb33', '#ffff4444']}
               />
              }
-            />:
-            <View style={styles.noruleViewV}>
-            <Icons
-              name="exclamation-circle"
-              size={50}
-              color="#717171"
-              />
-            <Text style={styles.noruleViewText}>暂无相关数据</Text>
-          </View>
+            />
+          {!this.state.hasActData?
+            <View style={styles.noDataView}>
+              <Icons
+                name="exclamation-circle"
+                size={50}
+                color="#717171"
+                />
+              <Text style={styles.noruleViewText}>暂无相关数据</Text>
+            </View>:null
           }
-
         </View>
     )
   }

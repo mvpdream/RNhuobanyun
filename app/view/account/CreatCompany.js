@@ -9,6 +9,7 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     TextInput,
+  ScrollView
     } from 'react-native';
 import styles from "./style";
 import api from "../../network/ApiHelper";
@@ -32,10 +33,14 @@ export default class CreatCompany extends React.Component{
     creatcompany(){
         api.Company.createCompany(this.state.companyname,this.state.shortName,this.state.creatname)
         .then((resData)=>{
-              Toast.show(resData.Data,"short");
-                this.props.nav.push({
-                    id: 'SelectCompany'
-                });
+              if(resData.Type==1){
+                  this.props.nav.push({
+                      id: 'SelectCompany'
+                  });
+              }else{
+                  Toast.show(resData.Data,"short");
+              }
+
         });
     };
     render(){
@@ -56,7 +61,9 @@ export default class CreatCompany extends React.Component{
                          <Text numberOfLines={1} style={styles.navLeftText}>创建企业</Text>
                      </View>
                    }/>
+
                 <View style={styles.container}>
+                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
                     <View style={styles.creatcom}>
                         <Text style={styles.titletext}>企业全称</Text>
                         <View style={this.state.selectText?[styles.titleInput,{borderColor:'#0683F9',borderWidth: 1.2}]:styles.titleInput}>
@@ -103,10 +110,10 @@ export default class CreatCompany extends React.Component{
                             </View>
                         </TouchableOpacity>
                     }
-
-
+                    </ScrollView>
 
                 </View>
+
             </View>
         );
     };

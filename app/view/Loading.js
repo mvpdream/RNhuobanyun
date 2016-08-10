@@ -29,7 +29,6 @@ export default class Loading extends React.Component {
     };
   };
   componentDidMount() {
-    debugger;
     NetInfo.fetch().done((reach) => {
       if(reach=="NONE"){
         Alert.alert(

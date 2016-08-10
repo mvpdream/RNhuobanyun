@@ -222,6 +222,20 @@ module.exports = StyleSheet.create({
     backgroundColor:'#4A4A4A',
     width: 150,
     height: 100
+  },
+  noDataView:{
+    position:'absolute',
+    right:0,
+    top:0,
+    left:0,
+    bottom:0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noDataViewText: {
+    fontSize: 14,
+    paddingTop: 10,
+    color: 'black'
   }
 });
 

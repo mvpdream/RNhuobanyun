@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 var placeText='';
 import _ from 'lodash'
 import Toast from  '@remobile/react-native-toast'
+var msg="";
 
 export default class Comment  extends React.Component {
   constructor(props) {
@@ -48,14 +49,25 @@ export default class Comment  extends React.Component {
     }
   }
   deleteComments(commentsitem,index){
+    //let deleteArr=[];
+    //this.props.commentList&&this.props.commentList.forEach((a)=>
+    //{
+    //  if(a.ParentId!=null&&a.ParentId==commentsitem.Id||a.Id==commentsitem.Id)
+    //  {
+    //    deleteArr.push(a)
+    //  }
+    //});
    //评论的创建人（删除自己创建的）活着是动态的创建人（删除动态下的所有评论）
     Alert.alert('删除评论','是否删除该评论？',[{text: '取消' },{text: '确认', onPress: () => {
       api.Comment.removeComment(commentsitem.Id)
       .then((resData)=>{
           Toast.show(resData.Data,"short");
           if(resData.Type==1){
-            if(index>-1){
-              this.props.commentList.splice(index,1)
+            var evens = _.remove(this.props.commentList,(a)=>{
+              return a.ParentId!=null&&a.ParentId==commentsitem.Id||a.Id==commentsitem.Id;
+            });
+            if(evens!=0){
+              Toast.show("删除成功","short");
             }
             if(this.props.commcallback!=null){
               this.props.commcallback(this.props.commentList.length);

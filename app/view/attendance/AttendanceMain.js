@@ -42,9 +42,6 @@ export default class AttendanceMain extends React.Component{
 
 
     }
-    reloadData(){
-      this.refs.punchCard.reloadData();
-    }
     isPunchOk=(isOk)=>{
       //刷新我的考勤记录
       if(isOk!=null){
@@ -55,16 +52,23 @@ export default class AttendanceMain extends React.Component{
     };
 
     render() {
-        const titleConfig = {
-            title: '考勤',
-            tintColor:'white'
-        };
         return (
             <View style={{flex:1}}>
-                <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
-                  title={titleConfig}
-                  />
+              <NavigationBar
+                style={{height: 55,backgroundColor:'#175898'}}
+                leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icons
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>考勤</Text>
+                     </View>
+                   }/>
               <View style={{flex:1}}>
                 <ScrollableTabView
                   tabBarBackgroundColor='white'

@@ -53,23 +53,35 @@ export default class AddressBook extends React.Component {
       <View style={{flex:1}}>
         <NavigationBar
           style={{height: 55,backgroundColor:'#175898'}}
-          title={titleConfig}
+          leftButton={
+                     <View style={styles.navLeftBtn}>
+                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
+                        <Icon
+                          name="android-arrow-back"
+                          size={28}
+                          color="white"
+                          onPress={() => {this.props.nav.pop()}}
+                        />
+                         </TouchableOpacity>
+                         <Text numberOfLines={1} style={styles.navLeftText}>通讯录</Text>
+                     </View>
+                   }
           rightButton={
-          <View style={{flexDirection: 'row',alignItems: 'center',marginRight:15}}>
-            <Icon
-            style={{marginRight:30}}
-              name='android-search'
-              size={25}
-              onPress={this.searchUser.bind(this,0)}
-              color='white'
-              />
-              <Icon
-              name='ios-upload-outline'
-              size={25}
-              onPress={this.searchUser.bind(this,1)}
-              color='white'
-              />
-            </View>} />
+                  <View style={{flexDirection: 'row',alignItems: 'center',marginRight:15}}>
+                    <Icon
+                    style={{marginRight:30}}
+                      name='android-search'
+                      size={25}
+                      onPress={this.searchUser.bind(this,0)}
+                      color='white'
+                      />
+                      <Icon
+                      name='ios-upload-outline'
+                      size={25}
+                      onPress={this.searchUser.bind(this,1)}
+                      color='white'
+                      />
+                    </View>} />
         <View style={{flex:1}}>
           <ScrollableTabView
             tabBarBackgroundColor='white'

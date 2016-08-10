@@ -14,7 +14,8 @@ import React, {
   Component,
   ScrollView,
   Alert,
-  AppState
+  AppState,
+  ProgressBarAndroid
   } from 'react-native';
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
@@ -41,6 +42,7 @@ var name="";
 var i=0;
 import Popup from 'react-native-popup';
 var Bounceable = require("react-native-bounceable");
+import BaiduLocation from 'react-native-bdmap';
 
 export default class PunchCard extends React.Component{
   constructor(props){
@@ -57,30 +59,81 @@ export default class PunchCard extends React.Component{
       errMsg:"",
       isCanPunch:true,
       distance:0,
+      isNeedWifi:false,
+      serviceStart:false,
       currentAppState: AppState.currentState
     };
     this._handleAppStateChange=this._handleAppStateChange.bind(this);
   };
   componentDidMount() {
+    i=0;
+    locationData=null;
     this.getData();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
+  updateData(mac,name,longitude,latitude){
+    api.Attendance.attendance(mac,name,longitude,latitude)
+      .then((res)=>{
+        var nowTimes=formatter('hh:mm',new Date());
+        this.setState({isFetch:true});
+        if(res.Type==1){
+          this.setState({resData:res.Data,haveData:true,nowTime:nowTimes});
+          loaderHandler.hideLoader();
+        }else{
+          this.setState({haveData:false});
+          loaderHandler.hideLoader();
+        }
+        BaiduLocation.stopObserving();//停止定位服务
+      })
+  }
   getDatas(callback){
-    AMapLocation.startLocation({
-      accuracy: 'HighAccuracy',
-      killProcess: true,
-      needDetail: true,
-      interval:500,
-      needMars: true
-    });
-    this.unlisten = AMapLocation.addEventListener((data) =>{
-      i++;
-      //计算两点之间的距离(当所在位置距离规则中的位置相差100m/150m的时候刷新页面，停止定位服务。)
-      if(locationData!=null){
-        var distance=this.getError(locationData.latitude,locationData.longitude,this.state.resData.Alatitude,this.state.resData.Alongitude);
-        this.setState({distance:distance});
-        if(distance>0.15){
-          loaderHandler.showLoader("请稍等。。。");
+    this.watchID = BaiduLocation.watchPosition((position) => {
+        i++;
+        this.setState({serviceStart:true});
+        /**
+         * 当用户在100m之内的时候CheckInRange是true
+         * 超出100m的时候通过updateData函数更新resData,此时的CheckInRange=false
+         */
+        if(this.state.resData&&this.state.resData.length!=0&&this.state.resData.CanCheckIn&&this.state.resData.CheckInRange){
+          let distance=this.getError(position.latitude,position.longitude,this.state.resData.Alatitude,this.state.resData.Alongitude);
+          //判断当前经纬度与规则中经纬度的距离，相差100m的时候获取数据，刷新页面。
+          if(distance>0.1){
+            if(this.state.isNeedWifi){
+              wifi.loadWifiList((wifiStringList) => {
+                  var oldWifiArray = JSON.parse(wifiStringList);
+                  mac="";
+                  name="";
+                  if(oldWifiArray&&oldWifiArray.length!=0){
+                    wifiArray=oldWifiArray.map((item)=>{
+                      mac=mac+","+item.BSSID;
+                      name=name+","+item.SSID;
+                    });
+                  }
+                  this.updateData(mac,name,position.longitude,position.latitude);
+                },
+                (error) => {
+                  loaderHandler.hideLoader();
+                  Toast.show("获取wifi列表失败","short");
+                }
+              );
+            }else{
+              this.updateData("","",position.longitude,position.latitude);
+            }
+
+          }
+        }
+        locationData=position;
+        callback(position);
+      },
+      (error) =>{
+        Toast.show("定位失败。错误代码"+error.code,"short");
+        this.setState({serviceStart:true});
+        BaiduLocation.stopObserving();//停止定位服务
+        /**
+         * 根据考勤规则判断是否需要wifi（wifi，定位二选一），需要的话继续获取wifi列表。
+         * 不需要，不能打卡
+         */
+        if(this.state.isNeedWifi){
           wifi.loadWifiList((wifiStringList) => {
               var oldWifiArray = JSON.parse(wifiStringList);
               mac="";
@@ -91,54 +144,32 @@ export default class PunchCard extends React.Component{
                   name=name+","+item.SSID;
                 });
               }
-              api.Attendance.attendance(mac,name,data.longitude,data.latitude)
-                .then((res)=>{
-                  var nowTimes=formatter('hh:mm',new Date());
-                  this.setState({isFetch:true});
-                  if(res.Type==1){
-                    AMapLocation.stopLocation();
-                    this.unlisten.remove();
-                    this.setState({resData:res.Data,haveData:true,nowTime:nowTimes});
-                    loaderHandler.hideLoader();
-                  }else{
-                    this.setState({haveData:false});
-                    loaderHandler.hideLoader();
-                  }
-                })
+              this.updateData(mac,name,0,0);
             },
             (error) => {
-              loaderHandler.hideLoader();
               Toast.show("获取wifi列表失败","short");
             }
           );
-
+        }else{
+          this.updateData("","",0,0);
         }
-      }
-      locationData=data;
-      callback(data);
-      });
-    if(locationData!=null){
-      api.Attendance.attendance(mac,name,locationData.longitude,locationData.latitude)
-        .then((res)=>{
-          var nowTimes=formatter('hh:mm',new Date());
-          this.setState({isFetch:true});
-          if(res.Type==1){
-            this.setState({resData:res.Data,haveData:true,nowTime:nowTimes});
-            if(this.state.haveData){
-              loaderHandler.hideLoader();
-            }
-
-          }else{
-            this.setState({haveData:false});
-          }
-
-        })
-    }
+      },
+      {enableHighAccuracy: true, timeout: 3000,mode:'HighAccuracy',scanSpan:1000}
+    );
   }
   rad(d){
     var PI = Math.PI;
     return d*PI/180.0;
   }
+  /**
+   * 计算两点之间的距离，判断是否超出打卡范围
+   * 刷新页面。
+   * @param lat1
+   * @param lng1
+   * @param lat2
+   * @param lng2
+   * @returns {number}
+   */
   getError(lat1,lng1,lat2,lng2){
     var radLat1 = this.rad(lat1);
     var radLat2 = this.rad(lat2);
@@ -151,56 +182,69 @@ export default class PunchCard extends React.Component{
     s = Math.round(s * 10000) / 10000;
     return s;
   }
-  reloadData(){
-    loaderHandler.showLoader("请稍等。。。");
-    api.Attendance.attendance(mac,name,locationData.longitude,locationData.latitude)
-      .then((res)=>{
-        loaderHandler.hideLoader();
-        var nowTimes=formatter('hh:mm',new Date());
-        this.setState({isFetch:true});
-        if(res.Type==1){
-          this.setState({resData:res.Data,haveData:true,nowTime:nowTimes});
-        }else{
-          this.setState({haveData:false});
-        }
-      })
-  }
-  getLocaData(item){
+  getLocationData(item){
+    var longitude=0;
+    var latitude=0;
     if(item!=null){
-      if(i==1){
-        loaderHandler.showLoader("请稍等。。。");
-        api.Attendance.attendance(mac,name,item.longitude,item.latitude)
-          .then((res)=>{
-            loaderHandler.hideLoader();
-            var nowTimes=formatter('hh:mm',new Date());
-            this.setState({isFetch:true});
-            if(res.Type==1){
-              this.setState({resData:res.Data,haveData:true,nowTime:nowTimes});
-            }else{
-              this.setState({haveData:false,errMsg:res.Data});
-            }
-          })
-      }
-
+      longitude=item.longitude;
+      latitude=item.latitude;
     }
+    /**
+     * 此处为获取数据，所以在定位服务监听运行中的时候不去刷新数据。
+     * 必要的时候更新页面的时候把i设成0即可获取最新的数据渲染页面。
+     */
+    if(i==1){
+      loaderHandler.showLoader("请稍等。。。");
+      api.Attendance.attendance(mac,name,longitude,latitude)
+        .then((res)=>{
+          loaderHandler.hideLoader();
+          var nowTimes=formatter('hh:mm',new Date());
+          this.setState({isFetch:true});
+          if(res.Type==1){
+            this.setState({resData:res.Data,haveData:true,nowTime:nowTimes});
+          }else{
+            this.setState({haveData:false,errMsg:res.Data});
+          }
+        })
+    }
+
+
   }
   getData(){
-    wifi.loadWifiList((wifiStringList) => {
-        var oldWifiArray = JSON.parse(wifiStringList);
-        mac="";
-        name="";
-        if(oldWifiArray&&oldWifiArray.length!=0){
-          wifiArray=oldWifiArray.map((item)=>{
-            mac=mac+","+item.BSSID;
-            name=name+","+item.SSID;
-          });
+    api.Attendance.getAttendanceRule()
+      .then((res)=>{
+        if(res.Type==1){
+          this.setState({isNeedWifi:res.Data});
+          if(res.Data){
+            //需要wifi
+            wifi.loadWifiList((wifiStringList) => {
+                var oldWifiArray = JSON.parse(wifiStringList);
+                mac="";
+                name="";
+                if(oldWifiArray&&oldWifiArray.length!=0){
+                  wifiArray=oldWifiArray.map((item)=>{
+                    mac=mac+","+item.BSSID;
+                    name=name+","+item.SSID;
+                  });
+                }
+                this.getDatas(this.getLocationData.bind(this));
+              },
+              (error) => {
+                Toast.show("获取wifi列表失败","short");
+              }
+            );
+          }
+          else{
+            mac="";
+            name="";
+            this.getDatas(this.getLocationData.bind(this));
+          }
+        }else{
+          Toast.show(res.Data,"short");
         }
-        this.getDatas(this.getLocaData.bind(this));
-      },
-      (error) => {
-        Toast.show("获取wifi列表失败","short");
-      }
-    );
+      });
+
+
   }
   punchCardFun(isUpdate){
     //打卡
@@ -220,6 +264,7 @@ export default class PunchCard extends React.Component{
                     if(res.Type==1){
                       Toast.show(toastMsg,"short");
                       this.props.isPunchOk(true);
+                      i=0;
                       this.getData();
                     }
                     else{
@@ -238,6 +283,7 @@ export default class PunchCard extends React.Component{
               if(res.Type==1){
                 Toast.show(res.Data,"short");
                 this.props.isPunchOk(true);
+                i=0;
                 this.getData();
               }else{
                 loaderHandler.hideLoader();
@@ -250,32 +296,33 @@ export default class PunchCard extends React.Component{
 
   }
   componentWillUnmount() {
-    AMapLocation.stopLocation();
-    this.unlisten.remove();
-    AppState.removeEventListener('change', this._handleAppStateChange);
+    BaiduLocation.stopObserving();//停止定位服务
+    AppState.removeEventListener('change', this._handleAppStateChange);//卸载判断程序在前后台运行的监听函数
   }
   _handleAppStateChange(currentAppState) {
     //后台运行的时候把定位服务stop掉
       if(currentAppState!="active"){
-       if(this.unlisten){
-         AMapLocation.stopLocation();
-         this.unlisten.remove();
+       if(this.watchID){
+         BaiduLocation.stopObserving();//停止定位服务
        }
       }
       else{
-       this.getData();
+        //更新数据。
+        i=0;
+        this.getData();
       }
-
-
   }
   render() {
-    //<Icon
-    //  name="check-circle"
-    //  size={15}
-    //  color="#000000"
-    //  />
     return (
       <View style={{flex:1,backgroundColor:colorManager.getCurrentStyle().BGCOLOR}}>
+        {
+          !this.state.serviceStart?<View style={[styles.noData,{flex:1}]}>
+            <View style={styles.noData}>
+              <ProgressBarAndroid styleAttr='Inverse' color='#A5A2A2' />
+              <Text style={{fontSize:14}}>正在获取当前位置</Text>
+            </View>
+          </View>:null
+        }
         {
           !this.state.isFetch?null:this.state.haveData?<View style={styles.container}>
             <ScrollView keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>

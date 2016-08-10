@@ -91,7 +91,7 @@ import {
   toggleArticleFavoriteState,
   checkKBManager
 } from './KBApis'
-import { attendance,checkIn,myAttendance } from './AttendanceApis.js'
+import { getAttendanceRule,attendance,checkIn,myAttendance } from './AttendanceApis.js'
 
 /**
  * Even though the codes bellow act like a fool,
@@ -195,6 +195,7 @@ export default {
     checkKBManager:checkKBManager
   },
   Attendance: {
+    getAttendanceRule:getAttendanceRule,
     attendance:attendance,
     checkIn:checkIn,
     myAttendance:myAttendance

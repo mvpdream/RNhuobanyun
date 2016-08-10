@@ -73,7 +73,7 @@ export default class ExitCompany extends React.Component {
                        </View>
                     }/>
         <View style={{ padding:20}}>
-          <Text style={{color:"black",fontSize:15}}>退出公司后，会将你在该公司中设为离职状态，你讲无法登录到改公司，若要回复联系公司管理员</Text>
+          <Text style={{color:"black",fontSize:15}}>退出公司后，会将你在该公司中设为离职状态，你将无法登录到该公司，若要恢复联系公司管理员</Text>
         </View>
 
         <View style={{marginTop:10}}>

@@ -37,7 +37,7 @@ export default class ReportList extends React.Component {
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       reportList: dataSource.cloneWithRows({}),
-      reportUserId:0
+      reportUserId:this.props.userId
     };
   }
 

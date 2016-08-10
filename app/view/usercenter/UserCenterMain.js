@@ -72,7 +72,7 @@ export default class UserCenterMain extends React.Component {
       user: [],
       userImage:null,
       dataSource: dataSource.cloneWithRows(navItems),
-      dataSources: dataSource.cloneWithRows(navItemss),
+      dataSources: dataSource.cloneWithRows(navItemss)
     };
 
   };
@@ -111,10 +111,8 @@ export default class UserCenterMain extends React.Component {
       </TouchableOpacity>
     );
 
-  }
-
-;
-  outlogin(){
+  };
+  outLogin(){
     Alert.alert(
       '提示',
       '确定退出登录？',
@@ -237,10 +235,8 @@ export default class UserCenterMain extends React.Component {
             </View>
             <View style={[styles.bottomView,{backgroundColor: colorManager.getCurrentStyle().BGCOLOR,marginTop: 15}]}>
               <TouchableNativeFeedback
-
-
                 style={styles.bottomTou}
-                onPress={this.outlogin.bind(this)}
+                onPress={this.outLogin.bind(this)}
                 >
                 <View style={styles.bottomTouView}>
                   <Text style={{color:"white"}}>退出登录</Text>

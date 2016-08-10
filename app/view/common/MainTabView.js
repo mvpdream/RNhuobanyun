@@ -58,12 +58,6 @@ export default class MainTabView  extends React.Component {
     // // this.props.nav.push({id:"AttendanceMain"})
     //}
   }
-  attendanceOnpress(){
-    if(this.refs.attendance){
-      this.refs.attendance.reloadData();
-    }
-    this.setState({ selectedTab: 'Attendance' })
-  }
   render() {
 
     //<TabNavigator.Item

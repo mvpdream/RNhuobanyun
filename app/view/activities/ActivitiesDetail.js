@@ -575,21 +575,19 @@ export default class ActivitiesDetail extends React.Component {
                                          {
                                            this.state.isAnonymousVoted?
                                              <TouchableOpacity style={styles.actDetailTou} key={index}>
-                                               <Text style={[styles.nomText,{width:Dimensions.get('window').width-180}]}>{voteitem.Content}</Text>
+                                               <Text style={[styles.nomText,{width:Dimensions.get('window').width*0.4}]}>{voteitem.Content}</Text>
                                                <Text style={[styles.nomText,{color:'#0965B7'}]}>
                                                  <Text style={styles.nomText}>{this.state.isvotednums==0?"0.00":(voteitem.Count/this.state.isvotednums*100).toFixed(2)}%</Text>
                                                  ({voteitem.Count}人)
                                                </Text>
                                              </TouchableOpacity>
-                                             :<TouchableOpacity style={styles.actDetailTou} onPress={this.voteOrReceiptDetail.bind(this,voteitem.Id,0)} key={index}>
-
-                                             <Text style={[styles.nomText,{width:Dimensions.get('window').width-180}]}>{voteitem.Content}</Text>
-
-                                             <Text style={[styles.nomText,{color:'#0965B7'}]}>
-                                               <Text style={styles.nomText}>{this.state.isvotednums==0?"0.00":(voteitem.Count/this.state.isvotednums*100).toFixed(2)}%</Text>
-                                               ({voteitem.Count}人)
-                                             </Text>
-
+                                             :
+                                             <TouchableOpacity style={styles.actDetailTou} onPress={this.voteOrReceiptDetail.bind(this,voteitem.Id,0)} key={index}>
+                                               <Text style={[styles.nomText,{width:Dimensions.get('window').width*0.4}]}>{voteitem.Content}</Text>
+                                               <Text style={[styles.nomText,{color:'#0965B7'}]}>
+                                                 <Text style={styles.nomText}>{this.state.isvotednums==0?"0.00":(voteitem.Count/this.state.isvotednums*100).toFixed(2)}%</Text>
+                                                 ({voteitem.Count}人)
+                                               </Text>
                                            </TouchableOpacity>
                                          }
                                        </View>

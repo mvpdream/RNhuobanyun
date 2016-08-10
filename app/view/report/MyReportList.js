@@ -118,7 +118,8 @@ export default class MyReportList extends React.Component {
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       reportList: dataSource.cloneWithRows({}),
-      isFetch:false
+      isFetch:false,
+      reportUserId:0
     };
   };
   componentDidMount() {
@@ -127,7 +128,6 @@ export default class MyReportList extends React.Component {
 
   }
   startLoad(subordinateId){
-    debugger;
     this.setState({reportUserId:subordinateId});
     this.fetchData(this.props.reportType,subordinateId)
   }

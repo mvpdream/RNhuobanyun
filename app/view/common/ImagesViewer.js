@@ -105,7 +105,9 @@ export default class ImagesViewer  extends React.Component {
              />
          </TouchableOpacity>
        </View>
-       <ScrollableTabView tabBarPosition="overlayTop" initialPage={this.state.currpagenum} onChangeTab={this.changePage.bind(this)}>
+       <ScrollableTabView
+         renderTabBar={() => <Text/>}
+         initialPage={this.state.currpagenum} onChangeTab={this.changePage.bind(this)}>
          {
            this.props.imageUrls&&this.props.imageUrls.map((imgitem,index)=>{
              return(

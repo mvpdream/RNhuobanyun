@@ -225,6 +225,15 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  noDataView:{
+    position:'absolute',
+    right:0,
+    top:0,
+    left:0,
+    bottom:0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   noruleViewText: {
     fontSize: 14,
     paddingTop: 10,
@@ -396,11 +405,11 @@ module.exports = StyleSheet.create({
     width: Dimensions.get('window').width
   },
   actDetailTou:{
+    width: Dimensions.get('window').width*0.75,
     padding:6,
-    paddingRight:10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   tempItemView:{
     borderRadius: 10,

@@ -3,6 +3,13 @@
 import { getData,postData,postFormData } from './utils/Http';
 
 /**
+ * 获取我的考勤规则（是否需要wifi）
+ * @returns {Promise.<T>}
+ */
+export function getAttendanceRule() {
+  return getData(`GetAttendanceRule`);
+}
+/**
  * 获取考勤首页
  * @param mac
  * @param name

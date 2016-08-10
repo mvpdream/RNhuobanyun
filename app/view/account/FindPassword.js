@@ -12,7 +12,8 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     TextInput,
-    Component
+    Component,
+  ScrollView
     } from 'react-native';
 import styles from "./style";
 import api from "../../network/ApiHelper";
@@ -77,6 +78,7 @@ export default class FindPassword extends React.Component{
                      </View>
                    }/>
                 <View style={styles.container}>
+                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
                 <View>
                     <View style={this.state.selectText?[styles.adduserInput,{borderColor:'#0683F9',borderWidth: 1.2}]:styles.adduserInput}>
                         <TextInput
@@ -135,7 +137,7 @@ export default class FindPassword extends React.Component{
                             </View>
                         </TouchableOpacity>
                     }
-
+                    </ScrollView>
                 </View>
             </View>
         );

@@ -10,6 +10,7 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     TextInput,
+  ScrollView
     } from 'react-native';
 import styles from "./style";
 import Dimensions from 'Dimensions';
@@ -63,6 +64,7 @@ export default class JoinCompany extends React.Component{
                      </View>
                    }/>
                 <View style={styles.container}>
+                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
                     <View style={styles.creatcom}>
                         <Text style={styles.titletext}>企业号</Text>
                         <View style={this.state.selectText?[styles.titleInput,{borderColor:'#0683F9',borderWidth: 1.2,}]:styles.titleInput}>
@@ -89,6 +91,7 @@ export default class JoinCompany extends React.Component{
                             <Text style={styles.text}>加入企业</Text>
                         </View>
                     </TouchableOpacity>
+                    </ScrollView>
                 </View>
             </View>
         );

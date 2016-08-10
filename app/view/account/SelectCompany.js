@@ -41,7 +41,6 @@ export default class SelectCompany extends React.Component {
 
 ;
   componentDidMount() {
-    debugger;
     loaderHandler.showLoader("加载中");
     api.Company.getCompanyList()
       .then((resDate)=> {

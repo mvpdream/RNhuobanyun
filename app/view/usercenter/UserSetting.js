@@ -35,11 +35,21 @@ export default class UserSetting extends React.Component{
         super(props);
         const nav = this.props.nav;
         this.state = {
-          versionNum:"3.4"
+          versionNum:"3.4",
+          telNum:"0532-88126086"
         };
     };
     componentWillMount(){
 
+    }
+    telFun(){
+      Linking.canOpenURL('tel:'+this.state.telNum).then(supported => {
+        if (!supported) {
+          Toast.show("打开失败！","short");
+        } else {
+          return Linking.openURL('tel:'+this.state.telNum);
+        }
+      })
     }
     CheckUpdate(){
       api.Util.checkUpdate(this.state.versionNum)
@@ -97,7 +107,7 @@ export default class UserSetting extends React.Component{
                 </TouchableOpacity>
               </View>
               <View style={{alignItems: 'center',marginBottom:30}}>
-                <Text style={styles.usersafeTexts}>客服电话：0532-88126086</Text>
+                <Text onPress={this.telFun.bind(this)} style={styles.usersafeTexts}>客服电话：0532-88126086</Text>
                 <Text style={[styles.pagerText,{fontSize: 13}]}>©2012-2016 上海乐兴软件技术有限公司</Text>
               </View>
               <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />

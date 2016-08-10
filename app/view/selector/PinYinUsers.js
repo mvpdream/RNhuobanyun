@@ -141,6 +141,7 @@ export default class PinYinUsers extends React.Component{
         api.OS.getUserListGroupByPrefix()
           .then((resData)=>{
             loaderHandler.hideLoader();
+
               this.setState({
                   data:resData.Data
               });

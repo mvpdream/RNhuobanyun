@@ -101,7 +101,7 @@ export default class Login extends React.Component {
 
     return (
       <View style={{flex:1,backgroundColor: 'white'}}>
-
+        <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <Animated.View
             style={{
@@ -165,6 +165,7 @@ export default class Login extends React.Component {
           </View>
 
         </View>
+          </ScrollView>
       </View>
     )
   }

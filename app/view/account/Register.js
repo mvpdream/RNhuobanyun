@@ -12,7 +12,8 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     TextInput,
-    Component
+    Component,
+  ScrollView
     } from 'react-native';
 import styles from "./style";
 import api from "../../network/ApiHelper";
@@ -81,6 +82,7 @@ export default class Register extends React.Component{
                      </View>
                    }/>
                 <View style={styles.container}>
+                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
                 <View>
                     <View style={this.state.selectText?[styles.adduserInput,{borderColor:'#0683F9',borderWidth: 1.2,}]:styles.adduserInput}>
                         <TextInput
@@ -151,7 +153,7 @@ export default class Register extends React.Component{
                             </View>
                         </TouchableOpacity>
                     }
-
+                    </ScrollView>
                 </View>
             </View>
         );
@@ -187,8 +189,6 @@ export default class Register extends React.Component{
           })
     }
     getcode(){
-
-        debugger;
         if(this.state.phoneNumber.length!=11||this.state.phoneNumber[0]!=1||this.state.phoneNumber==""){
             Toast.show("手机号格式有误！","short");
         }

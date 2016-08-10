@@ -29,6 +29,8 @@ const CANCEL_INDEX = 0;
 const DESTRUCTIVE_INDEX = 1;
 import Toast from  '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+var BusyIndicator = require('react-native-busy-indicator');
+var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 
 export default class AddressInfo extends React.Component {
   constructor(props) {
@@ -37,18 +39,24 @@ export default class AddressInfo extends React.Component {
     this.state = {
       UserData:[],
       Allcontacts:[],
-      isOpen:false
+      isOpen:false,
+      isFetch:false
     };
   };
   componentDidMount() {
     this.fetchData();
   };
   fetchData(){
+    loaderHandler.showLoader("加载中...");
     api.User.getUserProfile(this.props.Id)
       .then((resData)=>{
+        loaderHandler.hideLoader();
         this.setState({
           UserData:resData.Data
         });
+        if(this.state.UserData.length!=0){
+          this.setState({isFetch:true})
+        }
       })
   };
   addContacts(){
@@ -61,7 +69,7 @@ export default class AddressInfo extends React.Component {
       phoneNumbers: [{
         label: "mobile",
         number: this.state.UserData.Mobile
-      }],
+      }]
     };
     Contacts.getAll((err, contacts) => {
       if(err && err.type === 'permissionDenied'){
@@ -95,9 +103,6 @@ export default class AddressInfo extends React.Component {
     this.ActionSheet.show();
   }
   render() {
-    var toolbarActions = [
-      {title: '更多', show: 'always'},
-    ];
     return (
       <View style={styles.containersw}>
         <NavigationBar
@@ -116,12 +121,12 @@ export default class AddressInfo extends React.Component {
                      </View>
                    }
           rightButton={
-                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.show.bind(this)}>
+                    this.state.isFetch?<TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.show.bind(this)}>
                     <Text numberOfLines={1} style={styles.rightNavText}>更多</Text>
-                      </TouchableOpacity>
+                      </TouchableOpacity>:<Text/>
                     } />
 
-        <ScrollView keyboardShouldPersistTaps={true}>
+        {this.state.isFetch?<ScrollView keyboardShouldPersistTaps={true}>
           <View style={styles.icontainer}>
             <Image
               source={{uri:this.state.UserData.Avatar}}
@@ -230,7 +235,7 @@ export default class AddressInfo extends React.Component {
               </View>
             </View>
           </View>
-        </ScrollView>
+        </ScrollView>:null}
 
         <ActionSheet
           ref={(o) => this.ActionSheet = o}
@@ -240,7 +245,7 @@ export default class AddressInfo extends React.Component {
           destructiveButtonIndex={DESTRUCTIVE_INDEX}
           onPress={this._handlePress.bind(this)}
           />
-
+        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>
 
     );

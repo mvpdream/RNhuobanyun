@@ -173,7 +173,6 @@ export default class ExportAddress extends React.Component {
       return item.Name
     });
     if(newaddress.length>0){
-      debugger;
       Alert.alert(
                   '提示',
                   `确定导出${newAddressNames.join(",")}\n${newaddress.length}位联系人?`,
@@ -200,7 +199,7 @@ export default class ExportAddress extends React.Component {
                                   duplicatedUsers.push(temp.givenName);
                                 }
                               }
-                              if(duplicatedUsers.length>0){
+                              if(successUsers.length>0||duplicatedUsers.length>0){
                                 loaderHandler.hideLoader();
                                 Alert.alert(
                                   '提示',

@@ -8,8 +8,8 @@ import React, {
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
 import Toast from  '@remobile/react-native-toast'
-//var httpUrl='http://i-test.huobanyun.cn';
-var httpUrl = 'http://i.huobanyun.cn';
+var httpUrl='http://i-test.huobanyun.cn';
+//var httpUrl = 'http://i.huobanyun.cn';
 //var httpUrl='http://192.168.0.155';
 import RNFS from 'react-native-fs';
 

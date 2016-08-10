@@ -104,7 +104,7 @@ export default class FileSelector  extends React.Component {
         }
       }).catch((err) => {
         this.setState({hasFile:false});
-        console.log(err.message, err.code);
+        //console.log(err.message, err.code);
       });
   }
   selectKB(item){

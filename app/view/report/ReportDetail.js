@@ -47,7 +47,7 @@ export default class ReportDetail extends React.Component {
       imageData:[],
       imageUrl:"",
       imgurl:"",
-      imgurls:[],
+      imgUrls:[],
       isFetch:false,
       reportData: this.props.reportItem,
     };
@@ -97,7 +97,7 @@ export default class ReportDetail extends React.Component {
           this.setState({
             tasteruser:tasteruser,
             ccUser:ccUser,
-            imgurls:imgurls
+            imgUrls:imgurls
           })
         })
     }
