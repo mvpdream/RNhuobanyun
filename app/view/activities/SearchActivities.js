@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+ Image,
   Text,
   TextInput,
   StyleSheet,
@@ -13,13 +9,13 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Component
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import colorManager from '../common/styles/manager'
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
@@ -29,7 +25,7 @@ var that;
 var _this;
 var favorflag=false;
 var comflag=false;
-import Toast from  '@remobile/react-native-toast'
+
 
 class Cell extends Component {
   constructor(props){
@@ -39,7 +35,9 @@ class Cell extends Component {
       favorNum:this.props.item.FavorAmount,
       commentNum:this.props.item.CommentAmount,
       tempObj:[],
-      itemText:""
+      itemText:"",
+      announcementTil:"",
+      isAnnouncement:false
     };
     that=this;
 
@@ -76,6 +74,19 @@ class Cell extends Component {
         this.setState({itemText:'未回执'})
       }
     }
+    let announcementObj=[];
+    announcementObj=actItem&&actItem.Items!=""&&actItem.Items.filter((tempItem)=>{
+        if(tempItem&&tempItem.length!=0&&tempItem.hasOwnProperty("TenantType")&&tempItem.TenantType=="Announcement"){
+          return tempItem;
+        }
+      });
+    var announcementTil="";
+    if(announcementObj.length!=0&&announcementObj){
+      announcementTil=actItem&&actItem.Items!=""&&actItem.Items[0].Title;
+      this.setState({isAnnouncement:true,announcementTil:announcementTil})
+    }else{
+      this.setState({isAnnouncement:false,announcementTil:""})
+    }
     this.setState({tempObj:tempObj})
   }
   getActivitiesInfo(activityId){
@@ -109,7 +120,7 @@ class Cell extends Component {
     api.Activity.toggleLikeState(activityId)
       .then((resData)=>{
         //ToastAndroid.show(resData.Data, ToastAndroid.SHORT);
-        if(resData.Data=='收藏成功!'){
+        if(resData.Data=='收藏成功'){
           favorflag=true;
           this.setState({
             favorNum:this.state.favorNum+1,
@@ -146,17 +157,35 @@ class Cell extends Component {
               />
             <View style={styles.itemnamesope}>
               <Text style={styles.itemNamesope}>{item.UserCreated.Name}</Text>
-              <Text onPress={()=>{
-             this.props.nav.push({
-                id: 'ActivityScopesDetail',
-                activityId:item.Id
-              });
-            }} style={styles.scopeText}>--{item.Scopes==""?"我自己":item.Scopes}  {item['CreateDate']}</Text>
+              <View style={{width:Dimensions.get('window').width-90,flexDirection: 'row',justifyContent: 'space-between'}}>
+                <View style={{flexDirection: 'row',alignItems:'center'}}>
+                  <Text onPress={()=>{
+               this.props.nav.push({
+                  id: 'ActivityScopesDetail',
+                  activityId:item&&item.Id
+                });
+              }} style={styles.scopeText}>--{item.Scopes==""?"我自己":item.Scopes}</Text>
+                  {
+                    this.state.isAnnouncement?<View style={styles.AnnouncementView}>
+                      <Text style={[styles.scopeText,{color:'white'}]}>公告</Text>
+                    </View>:null
+                  }
+                </View>
+                <Text style={styles.scopeText}>{item&&item['CreateDate']}</Text>
+              </View>
             </View>
           </View>
           <TouchableOpacity onPress={this.getActivitiesInfo.bind(this,item.Id)}>
             {
-              item.Body==""?null:<View style={styles.itemBody}>
+              item.Body==""?null:this.state.announcementTil!=""?<View style={styles.itemBody}>
+                <HTMLView
+                  value={"<p>"+this.state.announcementTil+"</p>"}
+                  onLinkPress={(url) => {
+              Linking.openURL(url);
+              }}
+                  stylesheet={baseStyles}
+                  />
+              </View>:<View style={styles.itemBody}>
                 <HTMLView
                   value={body}
                   onLinkPress={(url) => {
@@ -170,7 +199,7 @@ class Cell extends Component {
               {
                 item.Images && item.Images.map((imageitem, index)=> {
                   return (
-                    <View key={index} style={{padding:10}}>
+                    <View key={index} style={{width: 85, height: 100}}style={{padding:10}}>
                       <Image
                         source={{uri:imageitem.Url}}
                         style={{width: 70,height: 85}}
@@ -266,51 +295,58 @@ export default class SearchActivities extends React.Component {
     favorflag=false;
     comflag=false;
     loaderHandler.showLoader("加载中...");
-    api.Activity.getActivityList(54,1,100,keyword)
+    api.Activity.getActivityList(62,1,100,keyword)
       .then((resData)=>{
         loaderHandler.hideLoader();
-        if(resData.Data!=""){
-        this.setState({
-          activityData:this.state.activityData.cloneWithRows(resData.Data),
-          nodata:false
-        });
-          //处理投票以及回执
-          var actItem=resData.Data.item;
-          var tempObj=actItem && actItem.Items&&actItem.Items.filter((tempitem)=> {
-              if(tempitem.TenantType=='Receipt'||tempitem.TenantType=='Vote'){return tempitem}
+        if(resData.Type==1){
+          if(resData.Data!=""){
+            this.setState({
+              activityData:this.state.activityData.cloneWithRows(resData.Data),
+              nodata:false
             });
-          if(tempObj&&tempObj.length>0&&tempObj[0].hasOwnProperty('TenantType')&&tempObj[0].TenantType=="Vote"){
-            this.setState({itemText:"投票："+tempObj[0].Title})
-          }
-          if(tempObj&&tempObj.length>0&&tempObj[0].hasOwnProperty('TenantType')&&tempObj[0].TenantType=="Receipt"){
+            //处理投票以及回执
+            var actItem=resData.Data.item;
+            var tempObj=actItem && actItem.Items&&actItem.Items.filter((tempitem)=> {
+                if(tempitem.TenantType=='Receipt'||tempitem.TenantType=='Vote'){return tempitem}
+              });
+            if(tempObj&&tempObj.length>0&&tempObj[0].hasOwnProperty('TenantType')&&tempObj[0].TenantType=="Vote"){
+              this.setState({itemText:"投票："+tempObj[0].Title})
+            }
+            if(tempObj&&tempObj.length>0&&tempObj[0].hasOwnProperty('TenantType')&&tempObj[0].TenantType=="Receipt"){
 
-            if(tempObj[0].HasVoted){
-              this.setState({itemText:'已回执'})
-            }
-            else if(tempObj[0].hasOwnProperty('WasCreator')&&tempObj[0].WasCreator){
-              if(tempObj[0].hasOwnProperty('Options')&&tempObj[0].Options.length>0){
-                var isReceiptednums=0;
-                for(var i=0;i<tempObj[0].Options.length;i++){
-                  isReceiptednums+=tempObj[0].Options[i].Count
+              if(tempObj[0].HasVoted){
+                this.setState({itemText:'已回执'})
+              }
+              else if(tempObj[0].hasOwnProperty('WasCreator')&&tempObj[0].WasCreator){
+                if(tempObj[0].hasOwnProperty('Options')&&tempObj[0].Options.length>0){
+                  var isReceiptednums=0;
+                  for(var i=0;i<tempObj[0].Options.length;i++){
+                    isReceiptednums+=tempObj[0].Options[i].Count
+                  }
                 }
+                var isReceiptnums=0;
+                if(tempObj[0].hasOwnProperty('UnreceiptedUsers')&&tempObj[0].UnreceiptedUsers.length>0){
+                  isReceiptnums=tempObj[0].UnreceiptedUsers.length
+                }
+                this.setState({itemText:'已回执'+isReceiptednums+'人'+'/'+'未回执'+isReceiptnums+'人'})
               }
-              var isReceiptnums=0;
-              if(tempObj[0].hasOwnProperty('UnreceiptedUsers')&&tempObj[0].UnreceiptedUsers.length>0){
-                isReceiptnums=tempObj[0].UnreceiptedUsers.length
+              else{
+                this.setState({itemText:'未回执'})
               }
-              this.setState({itemText:'已回执'+isReceiptednums+'人'+'/'+'未回执'+isReceiptnums+'人'})
             }
-            else{
-              this.setState({itemText:'未回执'})
-            }
+            this.setState({tempObj:tempObj})
           }
-          this.setState({tempObj:tempObj})
-        }
-        else{
+          else{
+            this.setState({
+              nodata:true
+            });
+          }
+        }else{
           this.setState({
             nodata:true
           });
         }
+
       })
   };
   activityItem(item){
@@ -319,7 +355,7 @@ export default class SearchActivities extends React.Component {
   search(){
     this.state.keywords=this.state.keywords.trim();
     if(this.state.keywords==""||this.state.keywords.length==0){
-      Toast.show("请输入搜索关键字","short");
+      ToastAndroid.show("请输入搜索关键字",ToastAndroid.SHORT);
     }
     else{
      this.fetchData(this.state.keywords);
@@ -349,7 +385,7 @@ export default class SearchActivities extends React.Component {
          <View style={{height: 55,alignItems: 'center',backgroundColor:colorManager.getCurrentStyle().NAVCOLOR,flexDirection: 'row',}}>
            <TouchableOpacity onPress={() => {this.props.nav.pop();}}>
              <Icons
-               name="android-arrow-back"
+               name="md-arrow-round-back"
                size={28}
                color="white"
                style={styles.serchImg}
@@ -367,8 +403,10 @@ export default class SearchActivities extends React.Component {
                 placeholder=" 关键字"
                 autoFocus={true}
                 textAlignVertical='center'
+                 returnKeyType='search'
+                onSubmitEditing={this.search.bind(this)}
                 onChangeText={(text) => this.setState({keywords: text})}
-                style={{flex:1,width:Dimensions.get('window').width*0.6}}
+                style={{flex:1,padding:0,width:Dimensions.get('window').width*0.6}}
                 />
             </View>
            <TouchableOpacity style={{padding:10}} onPress={this.search.bind(this)}>

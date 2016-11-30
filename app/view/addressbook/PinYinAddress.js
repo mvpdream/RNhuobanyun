@@ -1,9 +1,5 @@
-/**
- * Created by wangshuo on 2016/3/1.
- */
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   TextInput,
@@ -13,18 +9,17 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Component,
-  Alert
-  } from 'react-native';
+  Alert,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
-import Toast from  '@remobile/react-native-toast'
+
 import CircleCheckBox from 'react-native-circle-checkbox';
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var AlphabetListView = require('react-native-alphabetlistview');
-import ActionButton from 'react-native-action-button';
 var Contacts = require('react-native-contacts');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
@@ -142,16 +137,20 @@ export default class PinYinAddress extends React.Component {
    api.OS.getUserListGroupByPrefix()
     .then((resData)=>{
        loaderHandler.hideLoader();
-       this.setState({
-         data:resData.Data
-       });
+       if(resData.Type==1){
+         this.setState({
+           data:resData.Data
+         });
+       }else{
+         ToastAndroid.show("获取失败",ToastAndroid.SHORT);
+       }
      });
     if(this.props.isout){
       this.isout()
     }
   };
   render() {
-    //onScrollToSection={(data)=>{Toast.showShortCenter(data);}}
+    //onScrollToSection={(data)=>{ToastAndroid.showShortCenter(data);}}
     return (
       <View style={{flex:1,backgroundColor:'#EFF0F4'}}>
       <AlphabetListView
@@ -159,6 +158,8 @@ export default class PinYinAddress extends React.Component {
         data={this.state.data}
         cell={Cell}
         cellHeight={70}
+        removeClippedSubviews={false}
+        enableEmptySections={true}
         sectionListItem={SectionItem}
         sectionHeader={SectionHeader}
         sectionHeaderHeight={29}

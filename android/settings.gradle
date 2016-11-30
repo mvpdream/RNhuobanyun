@@ -1,26 +1,27 @@
-rootProject.name = 'RNhuobanyun'
+rootProject.name = 'HuoBanYunApp'
+
 include ':app'
 include ':react-native-jpush'
 project(':react-native-jpush').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-jpush/android')
+include ':react-native-bdmap'
+project(':react-native-bdmap').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-bdmap/android')
+include ':react-native-image-picker'
+project(':react-native-image-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-image-picker/android')
+include ':@remobile/react-native-toast'
+project(':@remobile/react-native-toast').projectDir = new File(rootProject.projectDir, '../node_modules/@remobile/react-native-toast/android')
 include ':react-native-vector-icons'
 project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
-include ':react-native-toast'
-project(':react-native-toast').projectDir = new File(rootProject.projectDir, '../node_modules/@remobile/react-native-toast/android')
-include ':react-native-image-picker'
-project(':react-native-image-picker').projectDir = new File(settingsDir, '../node_modules/react-native-image-picker/android')
-include ':app', ':react-native-dialogs'
-project(':react-native-dialogs').projectDir = file('../node_modules/react-native-dialogs/android')
-include ':react-native-contacts'
-project(':react-native-contacts').projectDir = new File(settingsDir, '../node_modules/react-native-contacts/android')
 include ':react-native-image-zoom'
 project(':react-native-image-zoom').projectDir = file('../node_modules/react-native-image-zoom/android')
 include ':react-native-fs'
 project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
+include ':react-native-dialogs'
+project(':react-native-dialogs').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-dialogs/android')
 include ':app', ':react-native-webview-bridge'
 project(':react-native-webview-bridge').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-webview-bridge/android')
-include ':reactamaplocation'
-project(':reactamaplocation').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-amap-location')
+include ':react-native-contacts'
+project(':react-native-contacts').projectDir = new File(settingsDir, '../node_modules/react-native-contacts/android')
+include ':WifiManager', ':app'
+project(':WifiManager').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-wifi-manager/android')
 include ':react-native-android-wifi'
 project(':react-native-android-wifi').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-android-wifi/android')
-include ':react-native-android-keyboard-adjust'
-project(':react-native-android-keyboard-adjust').projectDir = new File(settingsDir, '../node_modules/react-native-android-keyboard-adjust/android')

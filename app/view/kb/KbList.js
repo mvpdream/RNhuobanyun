@@ -1,22 +1,20 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+     Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    Component,
-  RefreshControl
-    } from 'react-native';
+    RefreshControl,
+    Alert,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var {height, widths} = Dimensions.get('window');
@@ -31,13 +29,11 @@ var itemData;
 var newName="";
 import Prompt from 'react-native-prompt';
 import _ from "lodash";
-import Popup from 'react-native-popup';
-var ImagePickerManager = require('NativeModules').ImagePickerManager;
+var ImagePickerManager = require('react-native-image-picker');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var firstLoad=false;
 var oneData=[];
-import Toast from  '@remobile/react-native-toast'
 import LoaderView from '../common/LoaderView.js'
 export default class KbList extends React.Component{
     constructor(props){
@@ -59,23 +55,17 @@ export default class KbList extends React.Component{
         };
     };
   componentDidMount(){
-    if(this.props.type!='search'){
+    if (this.props.type != 'search'&&this.props.project==null) {
+       loaderHandler.showLoader("请稍等。。。");
       this.getLists();
     }
-  }
-  componentDidUpdate(){
-    /**
-     * 从搜索页面退回是隐藏loader，测试阶段~~
-     */
-    if(loaderHandler.getVisit()){
-      loaderHandler.hideLoader();
+    if(this.props.project){
+       loaderHandler.showLoader("请稍等。。。");
+      this.getProjectKbLists();
     }
   }
   getLists(){
     this.state.dataSource=dataSource;
-    if(!this.state.isRefreshControl){
-      loaderHandler.showLoader("请稍等。。。");
-    }
     api.KB.getKBFileList(this.props.kbId)
       .then((res)=>{
         if(!this.state.isRefreshControl){
@@ -106,7 +96,48 @@ export default class KbList extends React.Component{
             this.props.isSuccess(false)
           }
           this.setState({hasFile:false,isRefreshControl:false});
-          Toast.show(res.Data,"short");
+          ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
+        }
+      }).catch((err) => {
+        //未知错误
+        ToastAndroid.show("未知错误",ToastAndroid.SHORT);
+      });
+  }
+  getProjectKbLists(isRefreshControl) {
+    if (isRefreshControl == null) {
+      loaderHandler.showLoader("请稍等。。。");
+      this.state.dataSource = dataSource;
+    }
+    api.Project.getProjectKb(this.props.project.projectId,this.props.kbId)
+      .then((res)=> {
+        loaderHandler.hideLoader();
+        if (res.Type == 1) {
+          if (this.props.isSuccess != null) {
+            this.props.isSuccess(true)
+          }
+          this.setState({
+            resData: res.Data
+          });
+          if (this.state.resData.length == 0) {
+            this.setState({hasFile: false, isRefreshControl: false});
+
+          } else {
+            this.setState({
+              isRefreshControl: false,
+              hasFile: true,
+              dataSource: dataSource.cloneWithRows(res.Data)
+            });
+          }
+          if (this.refs.list && this.state.resData.length > 0 && this.state.resData.length <= 5) {
+            this.refs.list.scrollTo({x: 0, y: 0, animated: false});
+          }
+        }
+        else {
+          if (this.props.isSuccess != null) {
+            this.props.isSuccess(false)
+          }
+          this.setState({hasFile: false, isRefreshControl: false});
+          ToastAndroid.show(res.Data);
         }
       }).catch((err) => {
         //未知错误
@@ -119,7 +150,11 @@ export default class KbList extends React.Component{
       resData:[],
       isRefreshControl:true
     });
-    this.getLists();
+    if(this.props.project){
+      this.getProjectKbLists(true);
+    }else{
+      this.getLists(true);
+    }
   }
   getFiles(files){
     if(files!=null){
@@ -128,24 +163,25 @@ export default class KbList extends React.Component{
         name:encodeURIComponent(files.name)
       }];
       this.refs.loaderView.startLoader();
-      api.KB.directUpload(this.props.kbId==null?0:this.props.kbId,itemData.Id,true,filesData)
+      api.KB.directUpload(this.props.kbId == null ? 0 : this.props.kbId, this.props.project&&this.props.project.projectId,itemData.Id, true, filesData)
         .then((res)=>{
-          Toast.show(res.Data,"short");
+          ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
           this.refs.loaderView.finishLoader();
           if(res.Type==1){
             newName=files.name;
             this.updateListFun("update");
           }
           else{
-            Toast.show(res.Data,"short");
+            ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
           }
         }).catch((err) => {
           //未知错误
-          Toast.show(err,"short");
+          ToastAndroid.show(err,ToastAndroid.SHORT);
         });
     }
   }
   uploadImage(){
+    let that=this;
     var options = {
       title: '选择图片',
       cancelButtonTitle: '取消',
@@ -164,7 +200,7 @@ export default class KbList extends React.Component{
       }
       else if (response.error) {
         //console.log('ImagePickerManager Error: ', response.error);
-        Toast.show('出现未知错误',"short");
+        ToastAndroid.show('出现未知错误',ToastAndroid.SHORT);
       }
       else {
         const source = {uri:"file://"+response.path, isStatic: true};
@@ -172,16 +208,16 @@ export default class KbList extends React.Component{
             uri:encodeURI(source.uri),
             name:encodeURIComponent(source.uri.split('/').pop())
           }];
-        this.refs.loaderView.startLoader();
-        api.KB.directUpload(this.props.kbId==null?0:this.props.kbId,itemData.Id,true,files)
+        that.refs.loaderView.startLoader();
+        api.KB.directUpload(that.props.kbId==null?0:that.props.kbId,that.props.project&&that.props.project.projectId,itemData.Id,true,files)
         .then((res)=>{
             if(res.Type==1){
-              this.refs.loaderView.finishLoader();
+              that.refs.loaderView.finishLoader();
               newName=source.uri.split('/').pop();
-              this.updateListFun("update");
+              that.updateListFun("update");
             }
             else{
-              Toast.show(res.Data,"short");
+              ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
           })
 
@@ -205,17 +241,14 @@ export default class KbList extends React.Component{
             break;
           case 3:
             //删除
-            this.popup.confirm({
-              title: '刪除',
-              content: ['是否删除？'],
-              cancel: {
-                text: '取消'
-              },
-              ok: {
-                text: '确定',
-                callback:this.deleteKb.bind(this)
-              }
-            });
+            Alert.alert(
+              '刪除',
+              '是否删除？',
+              [
+                {text: '取消'},
+                {text: '确定', onPress: this.deleteKb.bind(this)}
+              ]
+            );
             break;
         }
       }else{
@@ -247,17 +280,14 @@ export default class KbList extends React.Component{
           break;
         case 4:
           //删除
-          this.popup.confirm({
-            title: '刪除',
-            content: ['是否删除？'],
-            cancel: {
-              text: '取消'
-            },
-            ok: {
-              text: '确定',
-              callback:this.deleteKb.bind(this)
-            }
-          });
+          Alert.alert(
+            '刪除',
+            '是否删除？',
+            [
+              {text: '取消'},
+              {text: '确定', onPress: this.deleteKb.bind(this)}
+            ]
+          );
           break;
       }
       }
@@ -279,17 +309,14 @@ export default class KbList extends React.Component{
           else{
             msg="是否删除该文件？"
           }
-          this.popup.confirm({
-            title: '刪除',
-            content: msg,
-            cancel: {
-              text: '取消'
-            },
-            ok: {
-              text: '确定',
-              callback:this.deleteKb.bind(this)
-            }
-          });
+          Alert.alert(
+            '刪除',
+            msg,
+            [
+              {text: '取消'},
+              {text: '确定', onPress: this.deleteKb.bind(this)}
+            ]
+          );
           break;
       }
     }
@@ -297,21 +324,21 @@ export default class KbList extends React.Component{
   show() {
     this.ActionSheet.show();
   }
-  getSearchList(keyword){
-    var _this=this;
-    this.state.dataSource=dataSource;
-    loaderHandler.showLoader("请稍等。。。");
-    api.KB.search(this.props.kbId,keyword)
-      .then((res)=>{
+  getSearchList(keyword,projectId) {
+    var _this = this;
+    this.state.dataSource = dataSource;
+   loaderHandler.showLoader("请稍等。。。");
+    api.KB.search(this.props.kbId, keyword,projectId)
+      .then((res)=> {
         loaderHandler.hideLoader();
-        if(res.Data.length==0){
-          _this.setState({hasFile:false})
+        if (res.Data.length == 0) {
+          _this.setState({hasFile: false})
         }
-        else{
-          if(_this.refs.list){
+        else {
+          if (_this.refs.list) {
             _this.setState({
               dataSource: _this.state.dataSource.cloneWithRows(res.Data),
-              hasFile:true
+              hasFile: true
             });
           }
 
@@ -357,7 +384,7 @@ export default class KbList extends React.Component{
                 this.updateListFun("delete");
               }
               else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             });
           break;
@@ -370,7 +397,7 @@ export default class KbList extends React.Component{
                 this.updateListFun("delete");
               }
               else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             });
           break;
@@ -382,7 +409,7 @@ export default class KbList extends React.Component{
                 this.updateListFun("delete");
               }
               else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             });
           break;
@@ -398,7 +425,7 @@ export default class KbList extends React.Component{
           this.updateListFun("lock");
         }
         else{
-          Toast.show(res.Data,"short");
+          ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
         }
       });
     }else{
@@ -408,7 +435,7 @@ export default class KbList extends React.Component{
             this.updateListFun("lock");
           }
           else{
-            Toast.show(res.Data,"short");
+            ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
           }
         });
     }
@@ -417,7 +444,7 @@ export default class KbList extends React.Component{
     //重命名
     value=value.trim();
     if(value.length==0){
-      Toast.show("输入项中不能有空格！","short");
+      ToastAndroid.show("输入项中不能有空格！",ToastAndroid.SHORT);
       return;
     }
     this.setState({creatFlag:true});
@@ -433,7 +460,7 @@ export default class KbList extends React.Component{
                 this.updateListFun("update");
               }
               else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             });
           break;
@@ -448,7 +475,7 @@ export default class KbList extends React.Component{
                 this.updateListFun("update");
               }
               else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             });
           break;
@@ -462,7 +489,7 @@ export default class KbList extends React.Component{
                 this.updateListFun("update");
               }
               else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             });
           break;
@@ -482,7 +509,7 @@ export default class KbList extends React.Component{
      * 3 文章
      */
     if(!item.ManagePermission){
-      Toast.show("没有权限操作","short");
+      ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
     }
     if(item!=null&&item.ManagePermission){
       itemData=item;
@@ -516,29 +543,6 @@ export default class KbList extends React.Component{
     this.setState({
       promptVisible: false
     })
-  }
-  callUpdateListFun(typeName,Id,value){
-    var currentData=this.state.resData;
-    if(currentData&&currentData.length>0&&!!itemData){
-      let tempIds=_.pluck(currentData,'Id'),
-        _index=tempIds.indexOf(Id);
-        switch(typeName){
-          case "update":
-            currentData[_index].FileName=value;
-            break;
-          case "delete":
-            currentData.splice(_index,1);
-            break;
-          case "lock":
-            currentData[_index].IsLock=!currentData[_index].IsLock;
-            currentData[_index].ManageLock=!currentData[_index].ManageLock;
-            break
-        }
-        var temp=new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
-        this.setState({
-          dataSource: temp.cloneWithRows(currentData)
-        });
-      }
   }
   updateFileName(value,Id){
     var currentData=this.state.resData;
@@ -611,7 +615,8 @@ export default class KbList extends React.Component{
       updateFile={this.updateFile.bind(this)}
       updateFileName={this.updateFileName.bind(this)}
       removeFile={this.removeFile.bind(this)}
-      lockFile={this.lockFile.bind(this)}/>)
+      lockFile={this.lockFile.bind(this)}
+      project={this.props.project&&this.props.project}/>)
   }
   render() {
     var str=itemData&&itemData.FileName.substring(0,itemData.FileName.lastIndexOf("."));
@@ -671,7 +676,6 @@ export default class KbList extends React.Component{
                 cancelText="取消"
                 onCancel={this.promptCancel.bind(this)}
                 onSubmit={this.state.creatFlag?()=>{}:this.updateName.bind(this)}/>
-              <Popup ref={(popup) => { this.popup = popup }}/>
               <LoaderView ref="loaderView"/>
               <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
             </View>

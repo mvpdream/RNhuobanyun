@@ -1,13 +1,5 @@
-'use strict';
-
-/*
- * home toolbar :[home,category,search,user,setting]
- */
-
-var React = require('react-native');
-
-var {
-  AppRegistry,
+import React, {Component} from 'react'
+import {
   Platform,
   PixelRatio,
   StyleSheet,
@@ -18,92 +10,92 @@ var {
   TouchableHighlight,
   ToastAndroid,
   TouchableOpacity
-  } = React;
+} from 'react-native';
 
-var SwitchAndroid = require('SwitchAndroid');
-var ToolbarAndroid = require('ToolbarAndroid');
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
 var statusBarSize = Platform.OS == 'ios' ? 10 : 0;
 var active="AllActivities";
 import AllActivities from '../activities/AllActivities.js'
-import AddressBook from '../addressbook/AddressBook.js'
-import Report from '../report/ReportMain.js'
+//import AddressBook from '../addressbook/AddressBook.js'
+//import Report from '../report/ReportMain.js'
 import User from '../usercenter/UserCenterMain.js'
 import Application from './Application.js';
-import KB from '../kb/KbMain.js'
-import Attendance from '../attendance/AttendanceMain.js'
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+//import KB from '../kb/KbMain.js'
+//import Attendance from '../attendance/AttendanceMain.js'
 import TabNavigator from 'react-native-tab-navigator';
-import JPush from 'react-native-jpush';
 import api from "../../network/ApiHelper";
-import AndroidKeyboardAdjust from 'react-native-android-keyboard-adjust';
+import Task from '../task/TaskMain'
+import Project from '../project/ProjectMain'
+import JPush from 'react-native-jpush';
+import Modal from './UpdateView'
 
 export default class MainTabView  extends React.Component {
   constructor(props) {
     super(props);
     const nav = this.props.nav;
     this.state = {
+      taskNum:'',
+      versionNum:"3.2",
+      description:"",
+      downloadAddress:"",
       selectedTab: this.props.selectedTab!=null?this.props.selectedTab:'Activities'
     }
   }
 
   componentDidMount() {
-
     var currUser=api.User.getCurrentUser();
     if(currUser!=null){
       JPush.setAlias(currUser.Id.toString());
     }
-    //if(this.props.type&&this.props.type==1){
-    // // this.props.nav.push({id:"AttendanceMain"})
-    //}
+    this.getTaskNum();
+    this.CheckUpdate();
+    this.timer = setInterval(
+      () => {
+        this.getTaskNum();
+      },
+      36000
+    );
+  }
+  CheckUpdate() {
+    api.Util.checkUpdate(this.state.versionNum, 0)
+      .then((res)=> {
+        if (res.Type == 1) {
+          this.setState({
+            versionNum:res.Data.VersionNum,
+            description:res.Data.Description,
+            downloadAddress:res.Data.DownloadAddress});
+          this.refs.updateModal.openModal();
+        }
+      })
+  }
+  getTaskNum(){
+    api.Task.unreadTaskCount()
+      .then((num)=>{
+        if(num.Type==1){
+          if(num.Data!=0){
+            if(num.Data!=this.state.taskNum){
+              if(this.refs.TabNav){
+                this.setState({taskNum:num.Data})
+              }
+            }
+          }
+        }
+      }).catch((err)=>{})
+  }
+  changeNum(){
+    let num=Number(this.state.taskNum);
+    if(num<=0){
+      this.setState({taskNum:""})
+    }else{
+      this.setState({taskNum:this.state.taskNum-1})
+    }
+
   }
   render() {
 
-    //<TabNavigator.Item
-    //  selected={this.state.selectedTab === 'Attendance'}
-    //  title="考勤"
-    //  renderIcon={
-    //        () =><Icon
-    //        name='map-marker'
-    //        size={27}
-    //        style={{height:27}}
-    //        color='#656468'
-    //        />}
-    //  renderSelectedIcon={() =>
-    //        <Icon
-    //        name='map-marker'
-    //        size={28}
-    //        style={{height:28}}
-    //        color='#3b5998'
-    //        />}
-    //  titleStyle={{fontSize:12}}
-    //  onPress={this.attendanceOnpress.bind(this)}>
-    //  <Attendance ref="attendance" nav={this.props.nav}/>
-    //</TabNavigator.Item>
-    //<TabNavigator.Item
-    //  selected={this.state.selectedTab === 'AddressBook'}
-    //  title="通讯录"
-    //  renderIcon={
-    //        () =><Icon
-    //        name='phone-square'
-    //        size={27}
-    //        style={{height:30}}
-    //        color='#656468'
-    //        />}
-    //  renderSelectedIcon={() =>
-    //        <Icon
-    //        name='phone-square'
-    //        size={28}
-    //        style={{height:30}}
-    //        color='#3b5998'
-    //        />}
-    //  titleStyle={{fontSize:12}}
-    //  onPress={() => this.setState({ selectedTab: 'AddressBook' })}>
-    //  <AddressBook nav={this.props.nav}/>
-    //</TabNavigator.Item>
-
     return (
+      <View style={{flex:1}}>
         <TabNavigator>
           <TabNavigator.Item
             selected={this.state.selectedTab === 'Activities'}
@@ -123,54 +115,59 @@ export default class MainTabView  extends React.Component {
             color='#3b5998'
             />}
             titleStyle={{fontSize:12}}
+            tabStyle={{height:53}}
             onPress={() => this.setState({ selectedTab: 'Activities' })}>
             <AllActivities  nav={this.props.nav}/>
           </TabNavigator.Item>
 
+
+
           <TabNavigator.Item
-          selected={this.state.selectedTab === 'Report'}
-          title="汇报"
-          renderIcon={
+            selected={this.state.selectedTab === 'Task'}
+            title="任务"
+            badgeText={this.state.taskNum}
+            renderIcon={
             () =><Icon
-            name='table'
-            size={27}
-            style={{height:27}}
-            color='#656468'
+              name='tasks'
+              size={27}
+              style={{height: 27}}
+              color='#656468'
             />}
-          renderSelectedIcon={() =>
-          <Icon
-            name='table'
-            size={28}
-            style={{height:28}}
-            color='#3b5998'
+            renderSelectedIcon={() =>
+            <Icon
+              name='tasks'
+              size={28}
+              style={{height: 28}}
+              color='#3b5998'
             />}
-          titleStyle={{fontSize:12}}
-          onPress={() => this.setState({ selectedTab: 'Report' })}>
-          <Report  nav={this.props.nav}/>
-        </TabNavigator.Item>
+            titleStyle={{fontSize: 12}}
+            tabStyle={{height:53}}
+            onPress={() => this.setState({selectedTab: 'Task'})}>
+            <Task reloadNum={this.changeNum.bind(this)} nav={this.props.nav}/>
+          </TabNavigator.Item>
 
-        <TabNavigator.Item
-          selected={this.state.selectedTab === 'KB'}
-          title="文库"
-          renderIcon={
-                () =><Icon
-                name='folder'
-                size={27}
-                style={{height:30}}
-                color='#656468'
-                />}
-          renderSelectedIcon={() =>
-                <Icon
-                name='folder'
-                size={28}
-                style={{height:30}}
-                color='#3b5998'
-                />}
-          titleStyle={{fontSize:12}}
-          onPress={() => this.setState({ selectedTab: 'KB' })}>
-          <KB nav={this.props.nav}/>
-        </TabNavigator.Item>
-
+          <TabNavigator.Item
+            selected={this.state.selectedTab === 'Project'}
+            title="项目"
+            renderIcon={
+            () =><Icon
+              name='list-alt'
+              size={27}
+              style={{height: 30}}
+              color='#656468'
+            />}
+            renderSelectedIcon={() =>
+            <Icon
+              name='list-alt'
+              size={28}
+              style={{height: 30}}
+              color='#3b5998'
+            />}
+            titleStyle={{fontSize: 12}}
+            tabStyle={{height:53}}
+            onPress={() => this.setState({selectedTab: 'Project'})}>
+           <Project nav={this.props.nav}/>
+          </TabNavigator.Item>
 
 
 
@@ -193,8 +190,9 @@ export default class MainTabView  extends React.Component {
             color='#3b5998'
             />}
             titleStyle={{fontSize:12}}
+            tabStyle={{height:53}}
             onPress={() => this.setState({ selectedTab: 'Application' })}>
-            <Application nav={this.props.nav}/>
+             <Application nav={this.props.nav}/>
           </TabNavigator.Item>
 
 
@@ -216,12 +214,15 @@ export default class MainTabView  extends React.Component {
             color='#3b5998'
             />}
             titleStyle={{fontSize:12}}
+            tabStyle={{height:53}}
             onPress={() => this.setState({ selectedTab: 'UserCenter' })}>
-            <User nav={this.props.nav}/>
+             <User nav={this.props.nav}/>
           </TabNavigator.Item>
 
 
         </TabNavigator>
+        <Modal ref="updateModal" description={this.state.description} versionNum={this.state.versionNum} downloadAddress={this.state.downloadAddress}/>
+      </View>
     );
   }
 }

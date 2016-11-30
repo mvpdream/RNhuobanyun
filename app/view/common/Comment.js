@@ -1,6 +1,5 @@
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -11,15 +10,16 @@ import React, {
   TextInput,
   ScrollView,
   Alert,
-  Component
-  } from 'react-native';
-var Dimensions = require('Dimensions');
+  Dimensions
+} from 'react-native';
+
+
 import api from "../../network/ApiHelper";
 import styles from "./style";
 import Icon from 'react-native-vector-icons/Ionicons';
 var placeText='';
 import _ from 'lodash'
-import Toast from  '@remobile/react-native-toast'
+
 var msg="";
 
 export default class Comment  extends React.Component {
@@ -42,10 +42,15 @@ export default class Comment  extends React.Component {
     }
   }
   addnewComment(newComment){
-    this.props.commentList.push(newComment);
+    this.props.commentList.unshift(newComment);
     this.forceUpdate();
     if(this.props.commcallback!=null){
-    this.props.commcallback(this.props.commentList.length);
+    if(this.props.type&&this.props.type=='task'){
+      this.props.commcallback("add");
+    }else{
+      this.props.commcallback(this.props.commentList.length);
+    }
+    
     }
   }
   deleteComments(commentsitem,index){
@@ -61,20 +66,24 @@ export default class Comment  extends React.Component {
     Alert.alert('删除评论','是否删除该评论？',[{text: '取消' },{text: '确认', onPress: () => {
       api.Comment.removeComment(commentsitem.Id)
       .then((resData)=>{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
           if(resData.Type==1){
             var evens = _.remove(this.props.commentList,(a)=>{
               return a.ParentId!=null&&a.ParentId==commentsitem.Id||a.Id==commentsitem.Id;
             });
             if(evens!=0){
-              Toast.show("删除成功","short");
+              ToastAndroid.show("删除成功",ToastAndroid.SHORT);
             }
             if(this.props.commcallback!=null){
-              this.props.commcallback(this.props.commentList.length);
+               if(this.props.type&&this.props.type=='task'){
+                this.props.commcallback("delete");
+              }else{
+                this.props.commcallback(this.props.commentList.length);
+              }
             }
             this.forceUpdate();
           }else{
-            Toast.show("删除失败","short");
+            ToastAndroid.show("删除失败",ToastAndroid.SHORT);
           }
         })
     }}]);
@@ -82,11 +91,12 @@ export default class Comment  extends React.Component {
   render() {
     var item=this.props.commentList;
     return (
-    this.props.commentList&&this.props.commentList.length>0?
+    item&&item.length>0?
+      this.props.noView!=null?null:
       <View style={{flex:1}}>
       <View style={this.props.commView==null?styles.commView:this.props.commView}>
         {
-          item&&item.map((commentsitem, index)=> {
+          item&&item.length!=0&&item.map((commentsitem, index)=> {
             return (
               <View key={index} style={this.props.style==null?styles.commentView:this.props.style}>
                 <View style={{alignItems: 'center',flexDirection:'row',justifyContent: 'space-between'}}>
@@ -132,6 +142,8 @@ export default class Comment  extends React.Component {
     var activityCeator=this.props.commentConfig.creatActivityUser;
     if(commentObj.ParentId==null){
       commentObj.ParentId=-1;
+    }else{
+      commentObj.autoFocus=true;
     }
     if(currUser.Id==activityCeator.Id||currUser.Id==commentObj.Creator.Id){
       this.props.deleteback(commentObj,index)

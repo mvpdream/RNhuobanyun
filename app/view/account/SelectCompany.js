@@ -1,30 +1,25 @@
-/**
- * Created by lizx on 2016/2/4.
- */
-
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+    Image,
   Text,
   StyleSheet,
   View,
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Dimensions,
   PullToRefreshViewAndroid,
-  Alert
-  } from 'react-native';
+  Alert,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from "../../network/ApiHelper";
 import CompanyCell from "./CompanyCell.js"
 import _ from "lodash";
-import Popup from 'react-native-popup';
-import Toast from  '@remobile/react-native-toast';
+var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 
@@ -44,14 +39,14 @@ export default class SelectCompany extends React.Component {
     loaderHandler.showLoader("加载中");
     api.Company.getCompanyList()
       .then((resDate)=> {
-        loaderHandler.hideLoader();
+       loaderHandler.hideLoader();
         if(resDate.Type==1){
           this.setState({
             resData: resDate.Data,
             dataSource: this.state.dataSource.cloneWithRows(resDate.Data)
           });
         }else{
-          Toast.show("获取列表失败！请重试","short");
+          ToastAndroid.show("获取列表失败！请重试",ToastAndroid.SHORT);
         }
 
       })
@@ -75,7 +70,7 @@ export default class SelectCompany extends React.Component {
     api.Company.enterCompany(userid)
       .then((resData)=> {
         if (resData.Type != 1) {
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
         else {
           this.props.nav.immediatelyResetRouteStack([{id:'MainTabView'}]);
@@ -97,22 +92,18 @@ export default class SelectCompany extends React.Component {
 
   //撤销申请
   deleteAction(item, callb) {
-    this.popup.confirm({
-      title: '提示',
-      content: '是否撤销该申请？',
-      ok: {
-        text: '确认',
-        callback: () => {
-          this.cancelApply(item, callb)
-        }
-      },
-      cancel: {
-        text: '取消',
-        callback: () => {
-          this.cancelAction(item, callb)
-        }
-      }
-    });
+     Alert.alert(
+          '提示',
+          '是否撤销该申请？',
+          [
+            {text: '取消'},
+            {
+              text: '确定', onPress: () => {
+               this.cancelApply(item, callb)
+            }
+            }
+          ]
+        );
   };
 
   //取消
@@ -128,7 +119,7 @@ export default class SelectCompany extends React.Component {
       .then((resData) => {
         if (resData.Type && resData.Type == 1) {
           callb && callb();
-          Toast.show("撤销成功","short");
+          ToastAndroid.show("撤销成功",ToastAndroid.SHORT);
           if (currentData && currentData.length > 0 && !!item) {
             let tempIds = _.pluck(currentData, 'Id'),
               _index = tempIds.indexOf(item['Id'])
@@ -145,7 +136,7 @@ export default class SelectCompany extends React.Component {
         }
         else {
           callb && callb();
-          Toast.show("撤销失败","short");
+          ToastAndroid.show("撤销失败",ToastAndroid.SHORT);
         }
       })
   }
@@ -155,20 +146,10 @@ export default class SelectCompany extends React.Component {
     return (
       <View style={styles.recontainer}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icon
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>选择企业</Text>
-                     </View>
-                   }/>
+              <NavLeftView nav={this.props.nav} leftTitle="选择企业"/>
+          }/>
         <View style={styles.rescontainer}>
           <View style={{flexDirection:'row',flex:1,paddingTop:10}}>
             <ListView
@@ -191,7 +172,7 @@ export default class SelectCompany extends React.Component {
             </TouchableOpacity>
           </View>
         </View>
-        <Popup ref={(popup) => { this.popup = popup }}/>
+      
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>
     )

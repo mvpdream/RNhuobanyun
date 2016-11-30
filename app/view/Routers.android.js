@@ -1,11 +1,16 @@
 'use strict';
 
-var React = require('react-native');
-var { AppRegistry, View, BackAndroid, Navigator, Text,Alert,ToastAndroid,AppState } = React;
+import React, { Component } from 'react';
+import {
+    AppRegistry, View, BackAndroid, Navigator, Text,Alert,ToastAndroid,AppState,NetInfo
+  } from 'react-native';
+import Loading from './Loading.js'
+import api from '../network/ApiHelper';
+import MainTabView from './common/MainTabView.js'
 import Login from './account/Login.js'
 import Register from './account/Register.js'
 import FindPassword from './account/FindPassword.js'
-import ResetPassword from './account/ResetPassword'
+import ResetPassword from './account/ResetPassword.js'
 import RegisterSucceed from './account/RegisterSucceed.js'
 import CreatCompany from './account/CreatCompany.js'
 import JoinCompany from './account/JoinCompany.js'
@@ -27,7 +32,6 @@ import ExitCompany from './usercenter/ExitCompany.js'
 import AccountSafe from './usercenter/AccountSafe.js'
 import UpdateUser from './usercenter/UpdateUser.js'
 import UpdatePassword from './usercenter/UpdatePassword.js'
-import Toast from  '@remobile/react-native-toast'
 import AddressBook from './addressbook/AddressBook.js'
 import SearchAddress from './addressbook/SearchAddress.js'
 import ExportAddress from './addressbook/ExportAddress.js'
@@ -40,10 +44,8 @@ import ActivityScopesDetail from './activities/ActivityScopesDetail.js'
 import SearchActivities from './activities/SearchActivities.js'
 import SendActivity from './activities/SendActivity.js'
 import SendVote from './activities/SendVote.js'
-import MainTabView from './common/MainTabView.js'
-import api from '../network/ApiHelper'
-import Loading from './Loading.js'
 import ImagesViewer from './common/ImagesViewer.js'
+
 import KbMain from './kb/KbMain.js'
 import SearchKb from './kb/SearchKb.js'
 import PhotoSelector from './common/PhotoSelector.js'
@@ -52,13 +54,29 @@ import KbFileDetail from './kb/KbFileDetail.js'
 import KbArticleDetail from './kb/KbArticleDetail.js'
 import CommentList from './common/CommentList.js'
 import AttendanceMain from './attendance/AttendanceMain.js'
+import MyPunchCard from './attendance/MyPunchCard'
+import TaskMain from './task/TaskMain'
+import SearchTask from './task/SearchTask'
+import SearchResults from './task/SearchResults'
+import CreatTask from './task/CreatTask'
+import TaskDetail from './task/TaskDetail.js'
+import TaskCommentLists from './task/TaskCommentLists'
+import TaskLogLists from './task/TaskLogLists'
+import ProjectMain from './project/ProjectMain'
+import SearchProjects from './project/SearchProjects'
+import CreatProject from './project/CreatProject'
+import ProjectTabView from './project/ProjectTabView.js'
+import ProStageSetting from './project/ProStageSetting'
+import NoticeList from './activities/NoticeList'
 import JPush , {JpushEventReceiveMessage, JpushEventOpenMessage} from 'react-native-jpush'
 import _ from "lodash";
-import AndroidKeyboardAdjust from 'react-native-android-keyboard-adjust';
+// import AndroidKeyboardAdjust from 'react-native-android-keyboard-adjust';
 var dismissKeyboard = require('dismissKeyboard');
+
 
 var _navigator, _quitStatus = false;
 var isPushNotice = false;
+
 
 api.Util.setErrConsumeFunction(err=>{
   if (err instanceof TypeError) {
@@ -104,7 +122,7 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
     if (_quitStatus) {
       return false;
     } else {
-      Toast.show("再按一次返回键退出伙伴客户端","short");
+      ToastAndroid.show("再按一次返回键退出伙伴客户端",ToastAndroid.SHORT);
       _quitStatus = true;
       setTimeout(()=> {
         _quitStatus = false;
@@ -113,7 +131,11 @@ BackAndroid.addEventListener('hardwareBackPress', () => {
     }
   }
   if(_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id!="FileSelector"){
-    _navigator.pop();
+    if(_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id!="TaskDetail"){
+      _navigator.pop();
+    }else{
+
+    }
   }
   else if(_navigator.getCurrentRoutes()[_navigator.getCurrentRoutes().length-1].id=="ActivitiesDetail"){
     dismissKeyboard();
@@ -127,18 +149,20 @@ var Routers = React.createClass({
     return {type:0,currentAppState:""};
   },
   componentDidMount() {
-    AndroidKeyboardAdjust.setAdjustResize();
+    //WifiManager.setAdjustResize();
     JPush.requestPermissions();
     this.pushlisteners = [
       JPush.addEventListener(JpushEventReceiveMessage, this.onReceiveMessage),
       JPush.addEventListener(JpushEventOpenMessage, this.onOpenMessage)
     ];
+    NetInfo.addEventListener('change',this.isConnected);
 
   },
   componentWillUnmount() {
     this.pushlisteners.forEach(listener=> {
       JPush.removeEventListener(listener);
     });
+    NetInfo.removeEventListener('change',this.isConnected);
   },
   renderScene: function (route, navigator) {
     _navigator = navigator;
@@ -148,6 +172,13 @@ var Routers = React.createClass({
           <MainTabView nav={navigator} type={route.type} selectedTab={route.selectedTab}/>
         </View>
       );
+    }
+    if (route.id === 'Loading') {
+      return (
+        <View style={{flex: 1}}>
+          <Loading nav={navigator} type={route.type}/>
+        </View>
+      )
     }
     if (route.id === 'Login') {
       return (
@@ -165,7 +196,7 @@ var Routers = React.createClass({
     }
     if(route.id==='ResetPassword'){
       return(
-        <View>
+        <View style={{flex: 1}}>
           <ResetPassword nav={navigator} phonenum={route.phonenum}/>
         </View>
       )
@@ -206,7 +237,6 @@ var Routers = React.createClass({
       );
     }
     if (route.id === 'ReportMain') {
-      //<MainTabView currentroute={this.state.currentRoute} onselect={this.onSelectMenu}/>
       return (
         <View style={{flex: 1}}>
           <ReportMain nav={navigator}/>
@@ -251,6 +281,8 @@ var Routers = React.createClass({
             indexId={route.indexId}
             deleteactivity={route.deleteactivity}
             getIsReceipt={route.getIsReceipt}
+            project={route.project}
+            reloadList={route.reloadList}
             getfavorandcomNum={route.getfavorandcomNum}
             isfouces={route.isfouces}/>
         </View>
@@ -273,16 +305,44 @@ var Routers = React.createClass({
     if (route.id === 'SendActivity') {
       return (
         <View style={{flex: 1}}>
-          <SendActivity nav={navigator} type={route.type}/>
+          <SendActivity nav={navigator} reloadList={route.reloadList} type={route.type} project={route.project}/>
         </View>
       );
     }
     if (route.id === 'SendVote') {
       return (
         <View style={{flex: 1}}>
-          <SendVote nav={navigator}/>
+          <SendVote nav={navigator} reloadList={route.reloadList} project={route.project}/>
         </View>
       );
+    }
+      if (route.id === 'AllActivities') {
+      return (
+        <View style={{flex: 1}}>
+          <AllActivities nav={navigator} type={route.type}/>
+        </View>
+      )
+    }
+    if (route.id === 'SearchActivities') {
+      return (
+        <View style={{flex: 1}}>
+          <SearchActivities nav={navigator}/>
+        </View>
+      )
+    }
+    if(route.id==='MyFavorite'){
+      return (
+        <View style={{flex: 1}}>
+          <MyFavorite nav={navigator}/>
+        </View>
+      )
+    }
+    if(route.id==='ImagesViewer'){
+      return (
+        <View style={{flex: 1}}>
+          <ImagesViewer nav={navigator} imageUrls={route.imageUrls} imgindex={route.imgindex}/>
+        </View>
+      )
     }
     if (route.id === 'UserCenterMain') {
       return (
@@ -396,52 +456,23 @@ var Routers = React.createClass({
         </View>
       );
     }
-    if (route.id === 'AllActivities') {
-      return (
-        <View style={{flex: 1}}>
-          <AllActivities nav={navigator} type={route.type}/>
-        </View>
-      )
-    }
-    if (route.id === 'SearchActivities') {
-      return (
-        <View style={{flex: 1}}>
-          <SearchActivities nav={navigator}/>
-        </View>
-      )
-    }
-    if (route.id === 'Loading') {
-      return (
-        <View style={{flex: 1}}>
-          <Loading nav={navigator} type={route.type}/>
-        </View>
-      )
-    }
-    if(route.id==='MyFavorite'){
-      return (
-        <View style={{flex: 1}}>
-          <MyFavorite nav={navigator}/>
-        </View>
-      )
-    }
-    if(route.id==='ImagesViewer'){
-      return (
-        <View style={{flex: 1}}>
-          <ImagesViewer nav={navigator} imageUrls={route.imageUrls} imgindex={route.imgindex}/>
-        </View>
-      )
-    }
+
     if(route.id==='KbMain'){
       return(
         <View style={{flex:1}}>
-          <KbMain nav={navigator} kbName={route.kbName} kbId={route.kbId} managePermission={route.managePermission}/>
+          <KbMain
+            nav={navigator}
+            kbName={route.kbName}
+            kbId={route.kbId}
+            managePermission={route.managePermission}
+            project={route.project}/>
         </View>
       )
     }
     if(route.id==='SearchKb'){
       return(
         <View style={{flex:1}}>
-          <SearchKb nav={navigator} kbId={route.kbId}/>
+          <SearchKb nav={navigator} kbId={route.kbId} projectId={route.projectId}/>
         </View>
       )
     }
@@ -457,7 +488,8 @@ var Routers = React.createClass({
             updateFileName={route.updateFileName}
             removeFile={route.removeFile}
             lockFile={route.lockFile}
-            menuText={route.menuText}/>
+            menuText={route.menuText}
+            project={route.project}/>
         </View>
       )
     }
@@ -497,6 +529,13 @@ var Routers = React.createClass({
         </View>
       )
     }
+     if(route.id==='MyPunchCard'){
+      return(
+      <View style={{flex: 1}}>
+        <MyPunchCard nav={navigator}/>
+      </View>
+      )
+    }
     if(route.id==='PhotoSelector'){
       return (
         <View style={{flex: 1}}>
@@ -508,6 +547,131 @@ var Routers = React.createClass({
       return(
         <View style={{flex:1}}>
          <CommentList nav={navigator} attachmentId={route.attachmentId} creatorUser={route.creatorUser} />
+        </View>
+      )
+    }
+
+    if(route.id==='TaskMain'){
+      return(
+        <View style={{flex: 1}}>
+          <TaskMain nav={navigator} reloadNum={route.reloadNum} type={route.type}/>
+        </View>
+      )
+    }
+    if(route.id==='SearchTask'){
+      return(
+        <View style={{flex:1}}>
+          <SearchTask nav={navigator}/>
+        </View>
+      )
+    }
+    if (route.id === 'SearchResults') {
+      return (
+        <View style={{flex: 1}}>
+          <SearchResults nav={navigator} conditions={route.conditions}/>
+        </View>
+      )
+    }
+    if(route.id==='CreatTask'){
+      return(
+        <View style={{flex:1}}>
+          <CreatTask
+            nav={navigator}
+            reloadList={route.reloadList}
+            isChild={route.isChild}
+            getTaskData={route.getTaskData}
+            parentId={route.parentId}
+            copyTaskData={route.copyTaskData}
+            stages={route.stages}
+            currStage={route.currStage}
+            project={route.project}/>
+        </View>
+      )
+    }
+    if(route.id==='TaskDetail'){
+      return(
+        <View style={{flex:1}}>
+          <TaskDetail
+            nav={navigator}
+            taskId={route.taskId}
+            oldTaskId={route.oldTaskId}
+            newTask={route.newTask}
+            isChild={route.isChild}
+            stages={route.stages}
+            project={route.project}
+            reloadZiTask={route.reloadZiTask}
+            reloadLists={route.reloadLists}
+            type={route.type}
+            reloadNum={route.reloadNum}/>
+        </View>
+      )
+    }
+    if(route.id==='TaskCommentLists'){
+      return(
+        <View style={{flex:1}}>
+          <TaskCommentLists nav={navigator} taskId={route.taskId} creatorUser={route.creatorUser} />
+        </View>
+      )
+    }
+    if(route.id==='TaskLogLists'){
+      return(
+        <View style={{flex:1}}>
+          <TaskLogLists nav={navigator} taskId={route.taskId} />
+        </View>
+      )
+    }
+    if(route.id==='ProjectMain'){
+      return(
+        <View style={{flex:1}}>
+          <ProjectMain nav={navigator}/>
+        </View>
+      )
+    }
+    if(route.id==='SearchProjects'){
+      return(
+        <View style={{flex:1}}>
+          <SearchProjects nav={navigator}/>
+        </View>
+      )
+    }
+    if(route.id==='CreatProject'){
+      return(
+        <View style={{flex:1}}>
+          <CreatProject
+            nav={navigator}
+            reloadList={route.reloadList}
+            />
+        </View>
+      )
+    }
+    if(route.id==='ProjectTabView'){
+      return(
+        <View style={{flex:1}}>
+          <ProjectTabView
+            nav={navigator}
+            projectId={route.projectId}
+            projectName={route.projectName}
+            reloadData={route.reloadData}
+            type={route.type}
+            />
+        </View>
+      )
+    }
+    if(route.id==='ProStageSetting'){
+      return(
+        <View style={{flex:1}}>
+          <ProStageSetting
+            nav={navigator}
+            project={route.project}
+            reloadData={route.reloadData}
+            />
+        </View>
+      )
+    }
+    if(route.id==='NoticeList'){
+      return(
+        <View style={{flex:1}}>
+          <NoticeList nav={navigator} reloadBadge={route.reloadBadge}/>
         </View>
       )
     }
@@ -526,32 +690,169 @@ var Routers = React.createClass({
 
   },
   onReceiveMessage(message) {
-
+   debugger;
   },
-
-  onOpenMessage(message) {
-    var currUser=api.User.getCurrentUser();
-    if(currUser!=null){
-      let tempIds=_.pluck(_navigator.getCurrentRoutes(),'id');
-      let _index=tempIds.indexOf("AttendanceMain");
-      if(_index!=-1){
-        this.refs.navigator.replaceAtIndex({
-        id:'AttendanceMain'}, _index);
-      }
-      else{
-      this.refs.navigator.push({id:'AttendanceMain'});
-      }
-    }else{
-      let tempId=_.pluck(_navigator.getCurrentRoutes(),'id');
-      let index=tempId.indexOf("Login");
-      if(index!=-1){
-        this.refs.navigator.replaceAtIndex({
-          id:'Login'}, index);
-      }
-      else{
-        this.refs.navigator.push({id:'Login'});
-      }
+  isConnected(isConn){
+    if(isConn=="NONE"){
+      Alert.alert(
+        '警告',
+        `当前设备处于无网络状态\n请连接网络后继续使用。`,
+        [
+          {text: '确定'}
+        ]
+      )
     }
+  },
+  onOpenMessage(message) {
+    let msgType=message._data["cn.jpush.android.EXTRA"];
+    let noticeType=Object.getOwnPropertyNames(JSON.parse(msgType));
+    let id=JSON.parse(msgType)[noticeType];
+    debugger;
+    api.Util.checkLoginState()
+      .then((resData)=>{
+        if(resData.Type==1) {
+          //正常登录
+          let tempIds=_.pluck(_navigator.getCurrentRoutes(),'id');
+          let _index=0;
+         switch(noticeType[0]){
+            case "NewTaskPartner":
+            case "NewTaskDirector":
+            case "NewTaskAuditor":
+            case "NewTaskOnlooker":
+            case "TaskAttrbuteUpdate":
+              _index = tempIds.indexOf("TaskDetail");
+              if (_index != -1) {
+                this.refs.navigator.replaceAtIndex({
+                  id: 'TaskDetail',
+                  taskId:id,
+                  isChild:false,
+                  type:'notice'
+                }, _index);
+              }
+              else {
+                this.refs.navigator.push({
+                  id: 'TaskDetail',
+                  taskId:id,
+                  isChild:false,
+                  type:'notice'
+                });
+              }
+              break;
+            case "NewReceipt":
+              _index = tempIds.indexOf("ActivitiesDetail");
+              if (_index != -1) {
+                this.refs.navigator.replaceAtIndex({
+                  id: 'ActivitiesDetail',
+                  activityId: id,
+                  type:'notice'
+                }, _index);
+              }
+              else {
+                this.refs.navigator.push({
+                  id: 'ActivitiesDetail',
+                  activityId: id,
+                  type:'notice'
+                });
+              }
+              break;
+            case "NewProject":
+              //项目详情
+              api.Project.projectDetail(id)
+                .then((res)=>{
+                  if(res.Type==1){
+                    _index = tempIds.indexOf("ProjectTabView");
+                    if (_index != -1) {
+                      this.refs.navigator.replaceAtIndex({
+                        id: 'ProjectTabView',
+                        projectId:id,
+                        projectName:res.Data.Name,
+                        type:'notice'
+                      }, _index);
+                    }
+                    else {
+                      this.refs.navigator.push({
+                        id: 'ProjectTabView',
+                        projectId:id,
+                        projectName:res.Data.Name,
+                        type:'notice'
+                      });
+                    }
+                  }
+                });
+              break;
+            case "DailyReminder":
+            case "WeeklyReminder":
+            case "MonthlyReminder":
+              _index = tempIds.indexOf("CreatReport");
+              if (_index != -1) {
+                this.refs.navigator.replaceAtIndex({
+                  id: 'CreatReport'
+                }, _index);
+              }
+              else {
+                this.refs.navigator.push({
+                  id: 'CreatReport'
+                });
+              }
+              break;
+            case "NewReport":
+              _index = tempIds.indexOf("ReceiveReport");
+              if (_index != -1) {
+                this.refs.navigator.replaceAtIndex({
+                  id: 'ReceiveReport'
+                }, _index);
+              }
+              else {
+                this.refs.navigator.push({
+                  id: 'ReceiveReport'
+                });
+              }
+              break;
+            case "AttendanceReminder":
+              _index = tempIds.indexOf("AttendanceMain");
+              if (_index != -1) {
+                this.refs.navigator.replaceAtIndex({
+                  id: 'AttendanceMain'
+                }, _index);
+              }
+              else {
+                this.refs.navigator.push({
+                  id: 'AttendanceMain'
+                });
+              }
+              break;
+            default:
+              /**
+               * Object.getOwnPropertyNames排序是把'NewReport'放在了第二位
+               * 正常的是最后一个元素
+               */
+              // _index = tempIds.indexOf("ReceiveReport");
+              // if (_index != -1) {
+              //   this.refs.navigator.replaceAtIndex({
+              //     id: 'ReceiveReport'
+              //   }, _index);
+              // }
+              // else {
+              //   this.refs.navigator.push({
+              //     id: 'ReceiveReport'
+              //   });
+              // }
+              break;
+          }
+        }
+        else{
+          //用户未登录
+          let tempId=_.pluck(_navigator.getCurrentRoutes(),'id');
+          let index=tempId.indexOf("Login");
+          if(index!=-1){
+            this.refs.navigator.replaceAtIndex({
+              id:'Login'}, index);
+          }
+          else{
+            this.refs.navigator.push({id:'Login'});
+          }
+        }
+      })
   }
 });
 

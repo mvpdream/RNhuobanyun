@@ -1,27 +1,24 @@
-/**
- * Created by lizx on 2016/2/3.
- */
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+ Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     TextInput,
-    Component,
-  ScrollView
-    } from 'react-native';
+  ScrollView,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import api from "../../network/ApiHelper";
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
-import Toast from  '@remobile/react-native-toast'
+
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
+import InputScrollView from 'react-native-inputscrollview';
 
 
 export default class FindPassword extends React.Component{
@@ -41,7 +38,7 @@ export default class FindPassword extends React.Component{
             clearInterval(this.timer);
             this.setState({
                 timesecend:30,
-                agian:false
+                again:false
             });
         }
         this.forceUpdate();
@@ -63,22 +60,12 @@ export default class FindPassword extends React.Component{
         return(
             <View style={styles.recontainer}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>密码找回</Text>
-                     </View>
+                    <NavLeftView nav={this.props.nav} leftTitle="密码找回"/>
                    }/>
                 <View style={styles.container}>
-                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
+                    <InputScrollView showsVerticalScrollIndicator={false}>
                 <View>
                     <View style={this.state.selectText?[styles.adduserInput,{borderColor:'#0683F9',borderWidth: 1.2}]:styles.adduserInput}>
                         <TextInput
@@ -88,7 +75,7 @@ export default class FindPassword extends React.Component{
                             placeholder ="输入手机号"
                             keyboardType={'numeric'}
                             maxLength={11}
-                            textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({phoneNumber: text})} />
+                           style={styles.TextInputs} onChangeText={(text) => this.setState({phoneNumber: text})} />
                     </View>
                 </View>
                 <View style={{flexDirection:'row'}}>
@@ -100,7 +87,7 @@ export default class FindPassword extends React.Component{
                             placeholder ="输入短信验证码"
                             keyboardType={'numeric'}
                             maxLength={6}
-                            textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({phoneCode: text})} />
+                           style={styles.TextInputs} onChangeText={(text) => this.setState({phoneCode: text})} />
                     </View>
                     {
                         this.state.phoneNumber==""
@@ -109,7 +96,7 @@ export default class FindPassword extends React.Component{
                                 <Text style={{fontSize:14,color:'white'}}>获取验证短信</Text>
                             </View>
                         </TouchableOpacity>
-                       : this.state.agian
+                       : this.state.again
                           ?<TouchableOpacity style={[styles.codeTou,{width:widths*0.45}]}>
                             <View style={styles.codebutton}>
                               <Text style={{fontSize:14,color:'white'}}>{this.state.timesecend}s后重新发送</Text>
@@ -137,7 +124,7 @@ export default class FindPassword extends React.Component{
                             </View>
                         </TouchableOpacity>
                     }
-                    </ScrollView>
+                    </InputScrollView>
                 </View>
             </View>
         );
@@ -146,10 +133,10 @@ export default class FindPassword extends React.Component{
         api.User.checkApplyCode(this.state.phoneNumber,this.state.phoneCode)
         .then((res)=>{
             if(res.Type!=1){
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
             else{
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
                 this.props.nav.push({
                     id: 'ResetPassword',
                     phonenum:this.state.phoneNumber
@@ -160,20 +147,20 @@ export default class FindPassword extends React.Component{
     };
     getcode(){
         if(this.state.phoneNumber.length!=11||this.state.phoneNumber[0]!=1||this.state.phoneNumber==""){
-            Toast.show("手机号格式有误","short");
+            ToastAndroid.show("手机号格式有误",ToastAndroid.SHORT);
         }
         else{
         api.Util.getFindPasswordCode(this.state.phoneNumber)
             .then((resDate)=>{
-                if(resDate.Data=="短信发送成功."){
-                    Toast.show(resData.Data,"short");
+                if(resDate.Data=="短信发送成功"){
+                    ToastAndroid.show((resDate.Data==undefined||resDate.Data==null)?"未知错误":resDate.Data,ToastAndroid.SHORT);
                     this.showtimer();
                     this.setState({
-                        agian:true
+                        again:true
                     });
                 }
                 else{
-                    Toast.show(resData.Data,"short");
+                    ToastAndroid.show((resDate.Data==undefined||resDate.Data==null)?"未知错误":resDate.Data,ToastAndroid.SHORT);
                 }
             })
         }

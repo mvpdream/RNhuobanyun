@@ -1,9 +1,5 @@
-/**
- * Created by lizx on 2016/3/29.
- */
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -13,23 +9,25 @@ import React, {
   ListView,
   TextInput,
   ScrollView,
-  SwitchAndroid,
-  Picker
-  } from 'react-native';
+  Switch,
+  Picker,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 var {height, widths} = Dimensions.get('window');
-import Toast from  '@remobile/react-native-toast'
+
 var UserandDepArr=[];
-var ImagePickerManager = require('NativeModules').ImagePickerManager;
+var ImagePickerManager = require('react-native-image-picker');
 var imageData=[];
-var DialogAndroid = require('react-native-dialogs');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
+import InputScrollView from 'react-native-inputscrollview';
 
 
 export default class SendActivity extends React.Component {
@@ -82,9 +80,9 @@ export default class SendActivity extends React.Component {
         }
       }
     };
-    var dialog = new DialogAndroid();
-    dialog.set(options.data);
-    dialog.show();
+    // var dialog = new DialogAndroid();
+    // dialog.set(options.data);
+    // dialog.show();
   }
   submitActivity(){
     var userData=this.state.UserandDepArr&&this.state.UserandDepArr.filter((useritem)=>{
@@ -136,39 +134,74 @@ export default class SendActivity extends React.Component {
       });
     var actConent="";
     actConent=this.state.atUserorDep&&atText.toString()+this.state.activityContent;
-    if(this.state.UserandDepArr.length==0){
-      Toast.showShortCenter('请选择发送范围！');
+    if (this.state.UserandDepArr.length == 0&&this.props.project==null) {
+      ToastAndroid.show("请选择发送范围",ToastAndroid.SHORT);
       return;
     }
     if(actConent==""){
-      Toast.showShortCenter('请填写发送内容！');
+      ToastAndroid.show("请填写发送内容！",ToastAndroid.SHORT);
       return;
+    }
+    if(this.props.project!=null){
+      newuserData=null;
+      newdepData=null;
     }
     loaderHandler.showLoader("请稍等。。。");
     if(this.props.type==1){
       if(this.state.announcementTil==""){
-        Toast.showShortCenter('请填写公告标题！');
+        loaderHandler.hideLoader();
+        ToastAndroid.show("请填写公告标题！",ToastAndroid.SHORT);
         return;
       }
-    api.Activity.createSharing(newuserData,newdepData,fileData,this.state.expired_time,this.state.switchState,actConent,newatusers,newatdeps,true,this.state.announcementTil)
+    api.Activity.createSharing(newuserData,newdepData,fileData,this.state.expired_time,this.state.switchState,actConent,newatusers,newatdeps,true,this.state.announcementTil,this.props.project&&this.props.project.projectId)
       .then((resData)=>{
-        loaderHandler.hideLoader();
-        Toast.showShortCenter(resData.Data);
-        if(resData.Type==1){
-          this.props.nav.pop();
+        if (resData.Type == 1) {
+          if(this.props.project==null){
+              setTimeout(()=>{this.props.reloadList(this.isOK.bind(this))},1200);
+            }else{
+              setTimeout(()=>{
+                this.props.reloadList();
+                ToastAndroid.show("发送成功",ToastAndroid.SHORT);
+                loaderHandler.hideLoader();
+                this.props.nav.pop();
+              },1200);
+            }
+        }else{
+          loaderHandler.hideLoader();
+           ToastAndroid.show(resData.Data,ToastAndroid.SHORT);
         }
       });}
     else{
-
-    api.Activity.createSharing(newuserData,newdepData,fileData,null,this.state.switchState,actConent,newatusers,newatdeps)
+    api.Activity.createSharing(newuserData,newdepData,fileData,null,this.state.switchState,actConent,newatusers,newatdeps,false,null,this.props.project&&this.props.project.projectId)
     .then((resData)=>{
-        Toast.showShortCenter(resData.Data);
-        loaderHandler.hideLoader();
-        if(resData.Type==1){
-          this.props.nav.pop();
+        if (resData.Type == 1) {
+         if(this.props.project==null){
+              setTimeout(()=>{this.props.reloadList(this.isOK.bind(this))},1200);
+            }else{
+              setTimeout(()=>{
+                this.props.reloadList();
+                ToastAndroid.show("发送成功",ToastAndroid.SHORT);
+                loaderHandler.hideLoader();
+                this.props.nav.pop();
+              },1200);
+            }
+        }else{
+          loaderHandler.hideLoader();
+           ToastAndroid.show(resData.Data,ToastAndroid.SHORT);
         }
       })}
   };
+  isOK(isok){
+    if(isok){
+      ToastAndroid.show("发送成功",ToastAndroid.SHORT);
+      loaderHandler.hideLoader();
+      this.props.nav.pop();
+    }else{
+      ToastAndroid.show("列表刷新失败,请重试",ToastAndroid.SHORT);
+      loaderHandler.hideLoader();
+      this.props.nav.pop();
+    }
+  }
   uploadImage(){
     var options = {
       title: '选择图片',
@@ -248,30 +281,15 @@ export default class SendActivity extends React.Component {
   getActCont(text){
     this.setState({ activityContent: text});
     var actText=this.state.activityContent;
-    if(actText.charAt(actText.length-1)=="@")
-    {
-      this.refs.sendConent.blur();
-      this.showDialog();
-    }
   }
   render() {
     return (
 
       <View style={{flex:1,backgroundColor:'white'}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>{this.props.type==0?"发分享":"发公告"}</Text>
-                     </View>
+              <NavLeftView nav={this.props.nav} leftTitle={this.props.type==0?"发分享":"发公告"}/>
                    }
           rightButton={
                    <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.submitActivity.bind(this)}>
@@ -279,34 +297,36 @@ export default class SendActivity extends React.Component {
                       </TouchableOpacity>
                     } />
 
-        <View style={{height:height}}>
+        <InputScrollView showsVerticalScrollIndicator={false}>
         <View>
-          <TouchableOpacity onPress={this.sendscope.bind(this)}>
-            <View style={styles.sendConView}>
-                <View style={styles.sendToView}>
-                    <Text style={styles.nomText}>发送至：</Text>
-                </View>
-                <View style={styles.sendToRView}>
-                  {
-                    this.state.UserandDepArr && this.state.UserandDepArr.map((scopeTemp, index)=> {
-                      return (
-                      <View key={index} style={styles.scopeView}>
-                       <Text style={[styles.nomText,{color:'white'}]}>{scopeTemp.Name}</Text>
-                        <Icon name='close' size={20} color='white' style={{marginLeft:10}} onPress={this.closeScopeItem.bind(this,index)} />
-                      </View>
-                      )
-                    })
-                  }
-                </View>
+        {
+          this.props.project==null?
+            <TouchableOpacity onPress={this.sendscope.bind(this)}>
+          <View style={styles.sendConView}>
+            <View style={styles.sendToView}>
+              <Text style={styles.nomText}>发送至：</Text>
             </View>
-          </TouchableOpacity>
+            <View style={styles.sendToRView}>
+              {
+                this.state.UserandDepArr && this.state.UserandDepArr.map((scopeTemp, index)=> {
+                  return (
+                    <View key={index} style={styles.scopeView}>
+                      <Text style={[styles.nomText, {color: 'white'}]}>{scopeTemp.Name}</Text>
+                      <Icons name='ios-close' size={20} color='white' style={{marginLeft: 10}}
+                            onPress={this.closeScopeItem.bind(this, index)}/>
+                    </View>
+                  )
+                })
+              }
+            </View>
+          </View>
+        </TouchableOpacity>:null}
           {
             this.props.type==0?null
               :<View style={styles.nomView}>
               <TextInput
                 style={{height:40,textAlignVertical:'center'}}
                 placeholder='公告标题'
-                textAlign={'start'}
                 onFocus={()=>{
                this.setState({isBottomView:true})
               }}
@@ -336,7 +356,6 @@ export default class SendActivity extends React.Component {
               ref="sendConent"
               value={this.state.activityContent}
               placeholder='发送内容'
-              textAlign={'start'}
               onChangeText={this.getActCont.bind(this)}
               underlineColorAndroid="transparent"
               />
@@ -347,7 +366,7 @@ export default class SendActivity extends React.Component {
 
         <View  style={styles.rightleftView}>
           <Text style={styles.nomText}>是否需要回执</Text>
-          <SwitchAndroid onValueChange={this.changeSwitch.bind(this)} value={this.state.switchState}/>
+          <Switch onValueChange={this.changeSwitch.bind(this)} value={this.state.switchState}/>
         </View>
           {
             this.props.type==0?null:
@@ -377,7 +396,7 @@ export default class SendActivity extends React.Component {
                     source={{uri:item.uri}}
                     style={{width: 70,height: 85}}
                     />
-                  <Icons name='ios-close'
+                  <Icons name='ios-close-circle'
                          size={26}
                          color='#C7254E'
                          onPress={this.deleteImage.bind(this,index)}
@@ -390,7 +409,7 @@ export default class SendActivity extends React.Component {
             this.state.avatarSource&&this.state.avatarSource.length<3?
               <TouchableOpacity onPress={this.uploadImage.bind(this)}>
               <View style={styles.addimage}>
-              <Icons name='ios-plus-empty'
+              <Icons name='ios-add'
                      size={50}
                      color='#737373'
                      onPress={this.uploadImage.bind(this)}
@@ -400,7 +419,7 @@ export default class SendActivity extends React.Component {
 
         </View>
 
-      </View>
+      </InputScrollView>
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>
 

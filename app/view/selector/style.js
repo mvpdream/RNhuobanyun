@@ -3,11 +3,11 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
+  Dimensions
+  } from 'react-native'
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var WINDOW_HEIGHT = Dimensions.get('window').height;
 var LIST_HEIGHT = WINDOW_HEIGHT - 80; //计算出滚动区域的高度
@@ -86,6 +86,7 @@ module.exports = StyleSheet.create({
   rightContainer: {
     flex: 1,
     paddingLeft:1,
+    justifyContent: 'center'
   },
   title: {
     fontSize: 18,
@@ -193,8 +194,12 @@ module.exports = StyleSheet.create({
   },
   rightNavText:{
     color: 'white',
-    fontSize:18
+    fontSize:16
   },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  }
 
 });
 

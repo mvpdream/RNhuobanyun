@@ -1,16 +1,17 @@
 'use strict';
+import React, {Component} from 'react'
+import {
+Text,
+  View,
+  Dimensions
+} from 'react-native';
 
-import React, {
-  Text,
-  View
-  } from 'react-native';
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import api from "../../network/ApiHelper.js";
-var Dimensions = require('Dimensions');
 import _ from 'lodash';
 var zanflag=false;
-import Toast from  '@remobile/react-native-toast'
+
 
 export default class FavorUsersView extends React.Component {
   constructor(props) {
@@ -36,7 +37,7 @@ export default class FavorUsersView extends React.Component {
         obj.Name=currUser.Name;
         var falg=false;
         if(resData.Type==1){
-          if(resData.Data=='收藏成功!'){
+          if(resData.Data=='收藏成功'){
             this.state.FavorUsers.push(obj);
             falg=true;
             zanflag=true
@@ -49,7 +50,7 @@ export default class FavorUsersView extends React.Component {
           this.setState({FavorUsers:this.state.FavorUsers});
           this.props.Favorcallback(this.state.FavorUsers.length,falg);
         }else{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
       });
 
@@ -68,7 +69,7 @@ export default class FavorUsersView extends React.Component {
             name="thumbs-up"
             size={16}
             color="#FCC44D"
-            style={{marginLeft:5,marginTop:10,padding:5}}
+            style={{marginLeft:5,padding:6}}
             />
           <Text style={[styles.nomText,{color:'#2C6DAF',width:Dimensions.get('window').width-80}]}>{FavorUsersName&&FavorUsersName.join(',')}</Text>
         </View>:null

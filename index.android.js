@@ -1,8 +1,8 @@
 /**
  * Sample React Native App
  * https://github.com/facebook/react-native
+ * @flow
  */
-'use strict';
 
 var React = require('react-native');
 var {
@@ -10,4 +10,4 @@ var {
 } = React;
 
 var Routers = require('./app/view/Routers.android');
-AppRegistry.registerComponent('RNhuobanyun', () => Routers);
+AppRegistry.registerComponent('HuoBanYunApp', () => Routers);

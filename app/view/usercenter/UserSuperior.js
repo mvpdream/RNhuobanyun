@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+Image,
   Text,
   Alert,
   TextInput,
@@ -14,17 +10,17 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import api from "../../network/ApiHelper";
 import _ from "lodash";
 import SelectorMain from '../selector/SelectorMain.js'
-import Popup from 'react-native-popup';
-import Toast from  '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
 
 export default class UserSuperior extends React.Component {
@@ -42,10 +38,15 @@ export default class UserSuperior extends React.Component {
     getList(){
     api.User.getSuperiorList()
       .then((resData)=>{
-        this.setState({
-          resData:resData.Data,
-          dataSource: this.state.dataSource.cloneWithRows(resData.Data),
-        });
+        if(resData.Type==1){
+          this.setState({
+            resData:resData.Data,
+            dataSource: this.state.dataSource.cloneWithRows(resData.Data),
+          });
+        }else{
+          ToastAndroid.show("未知错误",ToastAndroid.SHORT);
+        }
+
       })
       .done();
    }
@@ -68,7 +69,7 @@ export default class UserSuperior extends React.Component {
     if(selectedItem!=""){
     api.User.addSuperior(selectedItem[0].Id)
       .then((resData)=>{
-        Toast.show(resData.Data,"short");
+        ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         if(resData.Type==1){
           this.getList();
         }
@@ -76,19 +77,16 @@ export default class UserSuperior extends React.Component {
   }
   //移除上级
   removeSuperior(item){
-    this.popup.confirm({
-      title: '提示',
-      content: '是否移除该用户？',
-      ok: {
-        text: '确认',
-        callback: () => {
-          this.okRemoveSuperior(item)
-        }
-      },
-      cancel: {
-        text: '取消'
-      }
-    });
+    Alert.alert(
+      '提示',
+      '是否移除该用户？',
+      [
+        {text: '取消'},
+        {text: '确定', onPress: () => {
+           this.okRemoveSuperior(item)
+        }}
+      ]
+    )
   };
   okRemoveSuperior(item){
      var userid=item.Id;
@@ -96,7 +94,7 @@ export default class UserSuperior extends React.Component {
      api.User.removeSuperior(userid)
        .then((resData) => {
          if (resData.Type&&resData.Type==1) {
-           Toast.show("删除成功","short");
+           ToastAndroid.show("删除成功",ToastAndroid.SHORT);
            if(currentData&&currentData.length>0&&!!item){
              let tempIds=_.pluck(currentData,'Id'),
                _index=tempIds.indexOf(item['Id'])
@@ -105,14 +103,14 @@ export default class UserSuperior extends React.Component {
                currentData.splice(_index,1);
                var temp=new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
                this.setState({
-                 dataSource: temp.cloneWithRows(currentData),
+                 dataSource: temp.cloneWithRows(currentData)
                });
              }
            }
 
          }
          else {
-           Toast.show("删除失败","short");
+           ToastAndroid.show("删除失败",ToastAndroid.SHORT);
          }
        })
    };
@@ -146,18 +144,9 @@ export default class UserSuperior extends React.Component {
       return (
         <View style={styles.containersw}>
           <NavigationBar
-            style={{height: 55,backgroundColor:'#175898'}}
+            style={styles.NavSty}
             leftButton={
-                    <View style={styles.navLeftBtn}>
-                          <Icons
-                            name="android-arrow-back"
-                            size={28}
-                            style={{marginLeft:20,paddingRight:20}}
-                            color="white"
-                            onPress={() => {this.props.nav.pop()}}
-                          />
-                        <Text style={styles.rightNavText}>设置上级</Text>
-                       </View>
+            <NavLeftView nav={this.props.nav} leftTitle="设置上级"/>
                     }/>
           <View style={{borderColor: '#E4E4E4',borderWidth: 1}}>
             <View style={styles.container}>
@@ -191,7 +180,6 @@ export default class UserSuperior extends React.Component {
               </View>
             </View>
           </TouchableOpacity>
-          <Popup ref={(popup) => { this.popup = popup }}/>
         </View>
 
       );

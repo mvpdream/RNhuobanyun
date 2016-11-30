@@ -7,7 +7,6 @@ var {
   View,
   Image,
   DrawerLayoutAndroid,
-  Dimensions,
   ListView,
   TouchableNativeFeedback,
   TouchableOpacity
@@ -16,7 +15,8 @@ var styles = require("./style");
 import Icon from 'react-native-vector-icons/FontAwesome';
 import api from "../../../network/ApiHelper";
 var DRAWER_WIDTH_LEFT = 80;
-var {height, width} = Dimensions.get('window');
+var Dimensions=require('Dimensions');
+var {height, width} = Dimensions.get('window');  //获取屏幕宽高
 /**
  * 侧边滑出导航栏
  */

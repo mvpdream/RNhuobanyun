@@ -1,10 +1,6 @@
-/**
- * Created by lizx on 2016/3/29.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+   Image,
   Text,
   StyleSheet,
   View,
@@ -13,14 +9,16 @@ import React, {
   ListView,
   TextInput,
   ScrollView,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 var {height, widths} = Dimensions.get('window');
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 
 
 export default class VoteOrReceiptDetail extends React.Component {
@@ -40,12 +38,19 @@ export default class VoteOrReceiptDetail extends React.Component {
     var Id=this.props.optionId;
     api.Activity.getVoteOrReceiptState(Id)
       .then((resData)=>{
-        this.setState({
-          isFetch:true,
-          UserData:resData.Data,
-          dataSource: this.state.dataSource.cloneWithRows(resData.Data),
-          userCount:resData.Data.length
-        });
+        if(resData.Type==1){
+          this.setState({
+            isFetch:true,
+            UserData:resData.Data,
+            dataSource: this.state.dataSource.cloneWithRows(resData.Data),
+            userCount:resData.Data.length
+          });
+        }else{
+          this.setState({
+            isFetch:false
+          });
+        }
+
       })
   };
   renderUser(User) {
@@ -73,19 +78,9 @@ export default class VoteOrReceiptDetail extends React.Component {
     return (
       <View style={{flex:1,backgroundColor:'white'}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>{this.props.type==0?'投票详情':'回执详情'}</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle={this.props.type==0?'投票详情':'回执详情'}/>
                    }/>
         <View style={{flex:1}}>
           {this.state.isFetch&&this.state.UserData.length==0? <View style={styles.noruleViewV}>

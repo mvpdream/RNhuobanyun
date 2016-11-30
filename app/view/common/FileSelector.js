@@ -1,6 +1,5 @@
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -13,11 +12,11 @@ import React, {
   Alert,
   Linking,
   ViewPagerAndroid,
-  Component,
   BackAndroid,
-  WebView
-  } from 'react-native';
-var Dimensions = require('Dimensions');
+  WebView,
+  Dimensions
+} from 'react-native';
+
 import _ from 'lodash';
 import api from "../../network/ApiHelper";
 import styles from "./style";
@@ -26,13 +25,13 @@ var Icons = require('react-native-vector-icons/Ionicons');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
 import RNFS from 'react-native-fs';
-import CameraRollPicker from 'react-native-camera-roll-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 var callFun;
 var _this;
 var dataSource = new ListView.DataSource({rowHasChanged: (row1, row2) => row1.title !== row2.title});
-import Toast from  '@remobile/react-native-toast';
+;
 var newArr=[];
 export default class FileSelector  extends React.Component {
   constructor(props) {
@@ -115,23 +114,23 @@ export default class FileSelector  extends React.Component {
         var fileName=this.props.fileName;
         var oldFileType=fileName.substring(fileName.lastIndexOf("."),fileName.length);
         if(item.name.lastIndexOf(".")==-1){
-          Toast.show('请选择同样的文件类型!',"short");
+          ToastAndroid.show('请选择同样的文件类型!',ToastAndroid.SHORT);
           return;
         }
         var newFileType=item.name.substring(item.name.lastIndexOf("."),item.name.length);
         if(oldFileType==newFileType){
           if((item.size/1024/1024)>20){
-            Toast.show("只允许上传最大为20M的文件！","short");
+            ToastAndroid.show("只允许上传最大为20M的文件！",ToastAndroid.SHORT);
           }else{
             this.props.getSelFile(item);
             this.props.nav.pop();
           }
         }else{
-          Toast.show("请选择同样的文件类型！","short");
+          ToastAndroid.show("请选择同样的文件类型！",ToastAndroid.SHORT);
         }
       }else{
         if((item.size/1024/1024)>20){
-          Toast.show("只允许上传最大为20M的文件！","short");
+          ToastAndroid.show("只允许上传最大为20M的文件！",ToastAndroid.SHORT);
         }else{
           this.props.getSelFile(item);
           this.props.nav.pop();
@@ -269,18 +268,9 @@ export default class FileSelector  extends React.Component {
     return (
      <View style={{flex:1}}>
        <NavigationBar
-         style={{height: 55,backgroundColor:'#175898'}}
+         style={styles.NavSty}
          leftButton={
-           <View style={styles.navLeftBtn}>
-              <Icons
-                name="android-arrow-back"
-                size={28}
-                style={{marginLeft:20,paddingRight:20}}
-                color="white"
-                onPress={this.backFile.bind(this)}
-              />
-            <Text style={{ color: 'white',fontSize:18}}>{this.props.navTil==null?"文件选择":this.props.navTil}</Text>
-           </View>
+          <NavLeftView nav={this.props.nav} backFun={this.backFile.bind(this)} leftTitle={this.props.navTil==null?"文件选择":this.props.navTil}/>
          }
          />
 

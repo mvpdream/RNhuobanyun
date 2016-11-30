@@ -1,11 +1,5 @@
-/**
- * Created by lizx on 2016/2/4.
- */
-
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
+import React, {Component} from 'react'
+import {
     Image,
     Text,
     StyleSheet,
@@ -13,10 +7,9 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    Dimensions,
     Animated,
     Easing
-    } from 'react-native';
+} from 'react-native';
 import styles from "./style";
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from "../../network/ApiHelper";
@@ -79,7 +72,7 @@ export default class CompanyCell extends React.Component{
                 </View>
               </View>
                 {
-                    this.state.statues=="已审核通过"?null:<Icon name='ios-close' size={26} color='#C7254E' onPress={this.deleteAction.bind(this)} style={{width: 26, height: 26,position: 'absolute',top:-3,right:5}}/>
+                    this.state.statues=="已审核通过"?null:<Icon name='ios-close-circle' size={26} color='#C7254E' onPress={this.deleteAction.bind(this)} style={{width: 26, height: 26,position: 'absolute',top:-3,right:5}}/>
                 }
             </Animated.View>
         </TouchableOpacity>

@@ -1,9 +1,5 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
+import React, { Component } from 'react';
+import {
     Image,
     Text,
     StyleSheet,
@@ -11,10 +7,12 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    } from 'react-native';
+  Dimensions
+  } from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 var {height, widths} = Dimensions.get('window');
@@ -61,19 +59,19 @@ export default class ReportMain extends React.Component{
 
     };
     render() {
-        const titleConfig = {
-            title: '汇报',
-            tintColor:'white'
-        };
         return (
             <View style={{flex:1}}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
-                  title={titleConfig}/>
+                  style={styles.NavSty}
+                  leftButton={
+                        <NavLeftView nav={this.props.nav} leftTitle={"汇报"}/>
+                      }/>
                     <View style={styles.container}>
                     <ListView
                         dataSource={this.state.dataSource}
                         renderRow={this.reportItem.bind(this)}
+                        removeClippedSubviews={false}
+                        enableEmptySections={true}
                         automaticallyAdjustContentInsets={false}
                         keyboardDismissMode="on-drag"
                         keyboardShouldPersistTaps={true}

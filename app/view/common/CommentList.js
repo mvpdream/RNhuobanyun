@@ -1,7 +1,6 @@
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+Image,
   Text,
   StyleSheet,
   View,
@@ -12,16 +11,17 @@ import React, {
   TextInput,
   ScrollView,
   Alert,
-  Component,
-  ProgressBarAndroid
-  } from 'react-native';
-var Dimensions = require('Dimensions');
+  ActivityIndicator,
+  Dimensions
+} from 'react-native';
+
 import api from "../../network/ApiHelper";
 import styles from "./style";
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/FontAwesome';
 import CommentInput from '../common/CommentInput.js'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 var zanflag=false;
 var commentTemp=[];
 var twocomCofs=[];
@@ -35,7 +35,8 @@ var activityData=new ListView.DataSource({
 });
 var firstLoad=false;
 var oneData=[];
-import Toast from  '@remobile/react-native-toast'
+
+import _ from 'lodash'
 export default class CommentList extends React.Component {
   constructor(props) {
     super(props);
@@ -74,7 +75,7 @@ export default class CommentList extends React.Component {
           var oldDataLen=this.state.AllData.length;
           this.state.AllData = this.state.AllData.concat(resData.Data);
           if(this.state.AllData.length==oldDataLen){
-            Toast.show("没有数据咯","short");
+            ToastAndroid.show("没有数据咯",ToastAndroid.SHORT);
             this.setState({hasMore:false});
             return;
           }
@@ -97,7 +98,12 @@ export default class CommentList extends React.Component {
   renderFooter() {
     return (
     this.state.hasMore&&<View ref='footerView' style={styles.footerView}>
-      <View style={{width:30,height:30,justifyContent: 'center'}}><ProgressBarAndroid styleAttr='Inverse' color='blue' /></View>
+      <View style={{width:30,height:30,justifyContent: 'center'}}>
+       <ActivityIndicator
+              animating={true}
+              color='blue'
+            />
+      </View>
       <Text style={styles.footerText}>
         数据加载中……
       </Text>
@@ -177,18 +183,23 @@ export default class CommentList extends React.Component {
     Alert.alert('删除评论','是否删除该评论？',[{text: '取消' },{text: '确认', onPress: () => {
       api.Comment.removeComment(commentsitem.Id)
         .then((resData)=>{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
           if(resData.Type==1){
             if(index>-1){
               var currentData=this.state.AllData;
-              currentData.splice(index,1);
+              var evens = _.remove(currentData,(a)=>{
+                return a.ParentId!=null&&a.ParentId==commentsitem.Id||a.Id==commentsitem.Id;
+              });
+              if(evens!=0){
+                ToastAndroid.show("删除成功",ToastAndroid.SHORT);
+              }
               var temp=new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
               this.setState({
                 allList: temp.cloneWithRows(currentData)
               });
             }
           }else{
-            Toast.show("删除失败","short");
+            ToastAndroid.show("删除失败",ToastAndroid.SHORT);
           }
         })
     }}]);
@@ -236,18 +247,9 @@ export default class CommentList extends React.Component {
     return (
       <View style={{flex:1}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                        <Icon
-                          name="android-arrow-back"
-                          size={28}
-                          style={{marginLeft:20,paddingRight:20}}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                      <Text numberOfLines={1} style={{ width:Dimensions.get('window').width*0.5,color: 'white',fontSize:18}}>评论列表</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="评论列表"/>
                    }
            />
       <View style={{flex: 1,backgroundColor:'#EFF0F4'}}>
@@ -257,6 +259,8 @@ export default class CommentList extends React.Component {
           renderRow={this.activityItem.bind(this)}
           onEndReached={this.onEndReached.bind(this)}
           onEndReachedThreshold={5}
+          removeClippedSubviews={false}
+          enableEmptySections={true}
           onScroll={this.onScroll.bind(this)}
           renderFooter={this.renderFooter.bind(this)}
           refreshControl={

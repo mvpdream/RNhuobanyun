@@ -1,23 +1,23 @@
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+ Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     TextInput,
-  ScrollView
-    } from 'react-native';
+  ScrollView,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import api from "../../network/ApiHelper";
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
-import Toast from  '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
+import InputScrollView from 'react-native-inputscrollview';
 
 
 export default class CreatCompany extends React.Component{
@@ -33,12 +33,13 @@ export default class CreatCompany extends React.Component{
     creatcompany(){
         api.Company.createCompany(this.state.companyname,this.state.shortName,this.state.creatname)
         .then((resData)=>{
+              ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
               if(resData.Type==1){
                   this.props.nav.push({
                       id: 'SelectCompany'
                   });
               }else{
-                  Toast.show(resData.Data,"short");
+                  ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
               }
 
         });
@@ -47,23 +48,12 @@ export default class CreatCompany extends React.Component{
         return(
             <View style={styles.recontainer}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>创建企业</Text>
-                     </View>
+                    <NavLeftView nav={this.props.nav} leftTitle="创建企业"/>
                    }/>
-
                 <View style={styles.container}>
-                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
+                    <InputScrollView showsVerticalScrollIndicator={false}>
                     <View style={styles.creatcom}>
                         <Text style={styles.titletext}>企业全称</Text>
                         <View style={this.state.selectText?[styles.titleInput,{borderColor:'#0683F9',borderWidth: 1.2}]:styles.titleInput}>
@@ -72,7 +62,7 @@ export default class CreatCompany extends React.Component{
                                 underlineColorAndroid="transparent"
                                 onFocus={()=>{this._onFocus(0)}}
                                 placeholder ="输入企业全称"
-                                textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({companyname: text})} />
+                                style={styles.TextInputs} onChangeText={(text) => this.setState({companyname: text})} />
                         </View>
                     </View>
                     <View style={styles.creatcom}>
@@ -83,7 +73,7 @@ export default class CreatCompany extends React.Component{
                                 underlineColorAndroid="transparent"
                                 onFocus={()=>{this._onFocus(1)}}
                                 placeholder ="输入企业简称"
-                                textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({shortName: text})} />
+                                style={styles.TextInputs} onChangeText={(text) => this.setState({shortName: text})} />
                         </View>
                     </View>
                     <View style={styles.creatcom}>
@@ -94,7 +84,7 @@ export default class CreatCompany extends React.Component{
                                 underlineColorAndroid="transparent"
                                 onFocus={()=>{this._onFocus(2)}}
                                 placeholder ="输入姓名"
-                                textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({creatname: text})} />
+                                style={styles.TextInputs} onChangeText={(text) => this.setState({creatname: text})} />
                         </View>
                     </View>
                     {
@@ -110,7 +100,7 @@ export default class CreatCompany extends React.Component{
                             </View>
                         </TouchableOpacity>
                     }
-                    </ScrollView>
+                    </InputScrollView>
 
                 </View>
 

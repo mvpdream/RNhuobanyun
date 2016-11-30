@@ -1,11 +1,5 @@
-/**
- * Created by lizx on 2016/2/4.
- */
-
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
+import React, { Component } from 'react';
+import {
   Image,
   Text,
   StyleSheet,
@@ -13,11 +7,12 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Dimensions,
   ScrollView
   } from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from "../../network/ApiHelper";
 
@@ -44,11 +39,12 @@ export default class ReportRules extends React.Component {
   fetchData() {
     api.Report.getTasterAndRules()
       .then((resData)=> {
-        this.setState({
-          remind: resData.remind,
-          dataSource: this.state.dataSource.cloneWithRows(resData.tasterusers),
-        });
-        this.setState({isFetch:true})
+          this.setState({
+            isFetch:true,
+            remind: resData.remind,
+            dataSource: this.state.dataSource.cloneWithRows(resData.tasterusers),
+          });
+          this.setState({isFetch:true})
       })
   }
 
@@ -70,28 +66,20 @@ export default class ReportRules extends React.Component {
     return (
       <View style={styles.recontainer}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icon
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>汇报规则</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="汇报规则"/>
                    }/>
         {
           this.state.isFetch?<View style={{flex:1}}>
             {
-              this.state.remind.monthtime == ""&&this.state.remind.daytime == ""&&this.state.remind.weektime == ""?null:<View style={{paddingLeft:15,padding:6}}>
+              (this.state.remind.monthtime == ""&&this.state.remind.daytime == ""&&this.state.remind.weektime == "")?null:
+              <View style={{paddingLeft:15,padding:6}}>
                 <View style={{backgroundColor:'white',padding:10}}>
                   <View>
                     {this.state.remind.daytime == ""?null:
-                      <View style={styles.ruleItemView}><Text style={styles.ruleText}>请在
+                      <View style={styles.ruleItemView}>
+                      <Text style={styles.ruleText}>请在
                         <Text style={styles.ruleTextName}>{this.state.remind.daytime}</Text>
                         前提交日报</Text></View>}
                     {

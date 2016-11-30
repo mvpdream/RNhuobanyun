@@ -1,12 +1,6 @@
-/**
- * Created by lizx on 2016/2/4.
- */
-
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+ Image,
   Text,
   StyleSheet,
   View,
@@ -15,10 +9,14 @@ import React, {
   ListView,
   Dimensions
   } from 'react-native';
+
 import styles from "./style";
 import api from "../../network/ApiHelper";
 import Icons from 'react-native-vector-icons/Ionicons';
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView';
+var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
+
 
 export default class UncommittedReport extends React.Component {
   constructor(props) {
@@ -38,9 +36,12 @@ export default class UncommittedReport extends React.Component {
   fetchData() {
     api.Report.checkSubmitStatus()
       .then((resData)=>{
-        this.setState({
-          dataSource: this.state.dataSource.cloneWithRows(resData.Data)
-        });
+          this.setState({
+            dataSource: this.state.dataSource.cloneWithRows(resData.Data)
+          });
+          if(resData.Data&&resData.Data.length==0){
+            ToastAndroid.show('暂无数据！',ToastAndroid.SHORT);
+          }
       })
   }
 
@@ -65,19 +66,9 @@ export default class UncommittedReport extends React.Component {
     return (
       <View style={{flex:1}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>汇报提交情况</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="汇报提交情况"/>
                    }/>
         <View style={{flex:1,backgroundColor:'#ECEFF1'}}>
             <ListView

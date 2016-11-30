@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+    Image,
   Text,
   StyleSheet,
   View,
@@ -13,20 +9,26 @@ import React, {
   ToastAndroid,
   ListView,
   TouchableNativeFeedback,
-  Alert
-  } from 'react-native';
+  ProgressBarAndroid,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Dimensions
+} from 'react-native';
+
 import colorManager from '../common/styles/manager'
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import api from "../../network/ApiHelper";
-var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var Bounceable = require("react-native-bounceable");
-var ImagePickerManager = require('NativeModules').ImagePickerManager;
+var ImagePickerManager = require('react-native-image-picker');
 var flag = false;
-import Popup from 'react-native-popup';
 import NavigationBar from 'react-native-navbar';
-import Toast from  '@remobile/react-native-toast'
+import NavLeftView from '../common/NavLeftView'
+var BusyIndicator = require('react-native-busy-indicator');
+var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
+import JPush from 'react-native-jpush';
 
 
 export default class UserCenterMain extends React.Component {
@@ -49,8 +51,6 @@ export default class UserCenterMain extends React.Component {
         nav.push({id: 'UserSuperior'})
       }
       },
-    ];
-    const navItemss = [
       {
         title: "切换企业", icon: 'retweet', onSelect: ()=> {
         nav.push({id: 'SelectCompany', icon: 1})
@@ -67,50 +67,27 @@ export default class UserCenterMain extends React.Component {
       }
       }
     ];
-    const dataSource = new ListView.DataSource({rowHasChanged: (row1, row2) => row1.title !== row2.title});
     this.state = {
       user: [],
       userImage:null,
-      dataSource: dataSource.cloneWithRows(navItems),
-      dataSources: dataSource.cloneWithRows(navItemss)
+      dataSource: navItems,
+      isFetch:false
     };
 
   };
   componentDidMount(){
     api.User.getUserProfile()
       .then((resData)=>{
-        this.setState({
-          user:resData.Data,
-          userImage:resData.Data.Avatar
-        });
+        if(resData.Type==1){
+          this.setState({
+            isFetch:true,
+            user:resData.Data,
+            userImage:resData.Data.Avatar
+          });
+        }else{
+          ToastAndroid.show("获取个人资料失败！",ToastAndroid.SHORT);
+        }
       })
-  };
-
-  reportItem(item) {
-    return (
-      <TouchableOpacity onPress={item.onSelect}>
-        <View style={styles.listRow}>
-          <View style={styles.cellImage}>
-            <Icon
-              name={item.icon}
-              size={18}
-              style={styles.rigthBtn}
-              />
-          </View>
-          <View style={styles.info}>
-            <Text style={styles.text}>{item.title}</Text>
-          </View>
-          <View>
-            <Icon
-              name='angle-right'
-              size={20}
-              style={styles.rigthBtn}
-              />
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-
   };
   outLogin(){
     Alert.alert(
@@ -129,12 +106,13 @@ export default class UserCenterMain extends React.Component {
     api.User.logout()
     .then((resData)=>{
         if(resData.Type==1){
+          JPush.setAlias("");//"" （空字符串）表示取消之前的设置。
           this.props.nav.replace({
             id: 'Login'
           });
         }
         else{
-          Toast.show("退出失败！","short");
+          ToastAndroid.show("退出失败！",ToastAndroid.SHORT);
         }
     });
   };
@@ -171,10 +149,12 @@ export default class UserCenterMain extends React.Component {
             name:source.uri.split('/').pop()
           }]
         };
+        loaderHandler.showLoader("正在上传...");
         api.User.uploadAvatar(param)
           .then((resData)=>{
+            loaderHandler.hideLoader();
             if(resData.Type!=1){
-              Toast.show(resData.Data.toString(),"short");
+              ToastAndroid.show(resData.Data.toString(),ToastAndroid.SHORT);
             }else{
               this.setState({
                 userImage: resData.Data
@@ -193,45 +173,58 @@ export default class UserCenterMain extends React.Component {
     return (
       <View style={{flex:1}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           title={titleConfig}/>
         <View style={[styles.containers,{backgroundColor: colorManager.getCurrentStyle().BGCOLOR}]}>
-            <View style={styles.container}>
-              <Bounceable
-                onPress={this.uploadImage.bind(this)}
-                level={1.1}>
-                <Image
-                  source={{uri:this.state.userImage}}
-                  style={styles.thumbnail}
-                  />
-              </Bounceable>
-              <View style={styles.rightContainer}>
-                <Text style={styles.headName}>{this.state.user.FirstName}</Text>
-                <Text style={styles.headDepName}>{this.state.user.Departments}</Text>
-              </View>
+          {this.state.isFetch?<View style={styles.container}>
+            <Bounceable
+              onPress={this.uploadImage.bind(this)}
+              level={1.1}>
+              <Image
+                source={{uri:this.state.userImage}}
+                style={styles.thumbnail}
+                />
+            </Bounceable>
+            <View style={styles.rightContainer}>
+              <Text style={styles.headName}>{this.state.user.FirstName}</Text>
+              <Text style={styles.headDepName}>{this.state.user.Departments}</Text>
             </View>
+          </View>:<View style={styles.container}>
+           <View style={styles.loaderThumbnail}>
+           <ActivityIndicator animating={true} color='#6d6d6d' size='large'/>
+           </View>
+            <View style={styles.rightContainer}>
+              <Text style={styles.headName}>加载中</Text>
+              <Text style={styles.headDepName}>加载中</Text>
+            </View>
+          </View>}
           <ScrollView keyboardShouldPersistTaps={true} keyboardDismissMode='on-drag'>
             <View>
-              <ListView
-                dataSource={this.state.dataSource}
-                renderRow={this.reportItem.bind(this)}
-                automaticallyAdjustContentInsets={false}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps={true}
-                showsVerticalScrollIndicator={false}
-                style={{backgroundColor: 'white',marginTop: 10}}
-                />
-            </View>
-            <View>
-              <ListView
-                dataSource={this.state.dataSources}
-                renderRow={this.reportItem.bind(this)}
-                automaticallyAdjustContentInsets={false}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps={true}
-                showsVerticalScrollIndicator={false}
-                style={{backgroundColor: 'white',marginTop: 10}}
-                />
+              {this.state.dataSource&&this.state.dataSource.map((item,index)=>{
+                return (
+                  <TouchableOpacity key={index} style={{marginTop:index==0||index==3?10:0}} onPress={item.onSelect}>
+                    <View style={styles.listRow}>
+                      <View style={styles.cellImage}>
+                        <Icon
+                          name={item.icon}
+                          size={18}
+                          style={styles.rigthBtn}
+                          />
+                      </View>
+                      <View style={styles.info}>
+                        <Text style={styles.text}>{item.title}</Text>
+                      </View>
+                      <View>
+                        <Icon
+                          name='angle-right'
+                          size={20}
+                          style={styles.rigthBtn}
+                          />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             <View style={[styles.bottomView,{backgroundColor: colorManager.getCurrentStyle().BGCOLOR,marginTop: 15}]}>
               <TouchableNativeFeedback
@@ -247,7 +240,7 @@ export default class UserCenterMain extends React.Component {
 
 
         </View>
-        <Popup ref={(popup) => { this.popup = popup }}/>
+        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>
     );
   }

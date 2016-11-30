@@ -1,30 +1,26 @@
-/**
- * Created by lizx on 2016/2/3.
- */
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-    Image,
+
+import React, {Component} from 'react'
+import {
+   Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     TextInput,
-    Component,
-  ScrollView
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
 import styles from "./style";
-import api from "../../network/ApiHelper";
-var Dimensions=require('Dimensions');
+import api from '../../network/ApiHelper';
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var currDate = new Date();
-var currHour="whwdxhbmdjdl"+currDate.getHours();
-import Toast from  '@remobile/react-native-toast'
+var currHour="whwdxhbmdjdl";
+
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
-import md5 from 'md5';
+var CryptoJS = require("crypto-js");
+import InputScrollView from 'react-native-inputscrollview';
 
 
 export default class Register extends React.Component{
@@ -67,22 +63,12 @@ export default class Register extends React.Component{
         return(
             <View style={styles.recontainer}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>注册</Text>
-                     </View>
+                    <NavLeftView nav={this.props.nav} leftTitle="注册"/>
                    }/>
                 <View style={styles.container}>
-                    <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
+                    <InputScrollView showsVerticalScrollIndicator={false}>
                 <View>
                     <View style={this.state.selectText?[styles.adduserInput,{borderColor:'#0683F9',borderWidth: 1.2,}]:styles.adduserInput}>
                         <TextInput
@@ -91,7 +77,7 @@ export default class Register extends React.Component{
                             onFocus={()=>{this._onFocus(0)}}
                             placeholder ="输入手机号"
                             maxLength={11}
-                            textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({phoneNumber: text})} />
+                            style={styles.TextInputs} onChangeText={(text) => this.setState({phoneNumber: text})} />
                     </View>
                 </View>
                 <View>
@@ -102,7 +88,7 @@ export default class Register extends React.Component{
                             secureTextEntry={true}
                             onFocus={()=>{this._onFocus(1)}}
                             placeholder ="输入密码"
-                            textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({password: text})} />
+                             style={styles.TextInputs} onChangeText={(text) => this.setState({password: text})} />
                     </View>
                 </View>
 
@@ -115,7 +101,7 @@ export default class Register extends React.Component{
                             placeholder ="输入短信验证码"
                             keyboardType={'numeric'}
                             maxLength={6}
-                            textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({phoneCode: text})} />
+                             style={styles.TextInputs} onChangeText={(text) => this.setState({phoneCode: text})} />
                     </View>
                     {
                         this.state.phoneNumber==""
@@ -153,7 +139,7 @@ export default class Register extends React.Component{
                             </View>
                         </TouchableOpacity>
                     }
-                    </ScrollView>
+                    </InputScrollView>
                 </View>
             </View>
         );
@@ -167,7 +153,7 @@ export default class Register extends React.Component{
                     });
                 }
                 else{
-                    Toast.show(resDate.Data,"short");
+                    ToastAndroid.show(resDate.Data,ToastAndroid.SHORT);
                 }
 
             });
@@ -176,29 +162,26 @@ export default class Register extends React.Component{
     getphonecode(md5code){
         api.Util.getValidCode(this.state.phoneNumber,md5code)
           .then((resDate)=>{
-              if(resDate.Data=="短信发送成功."){
-                  Toast.show(resDate.Data,"short");
+              if(resDate.Data=="短信发送成功"){
+                  ToastAndroid.show(resDate.Data,ToastAndroid.SHORT);
                   this.showtimer();
                   this.setState({
                       agian:true
                   });
               }
               else{
-                  Toast.show(resDate.Data,"short");
+                  ToastAndroid.show(resDate.Data,ToastAndroid.SHORT);
               }
           })
     }
     getcode(){
         if(this.state.phoneNumber.length!=11||this.state.phoneNumber[0]!=1||this.state.phoneNumber==""){
-            Toast.show("手机号格式有误！","short");
+            ToastAndroid.show("手机号格式有误！",ToastAndroid.SHORT);
         }
         else{
-            let a=md5(currHour);
-            let b=md5(a.toUpperCase());
-            let c=md5(b.toUpperCase());
-            let msg=c.toUpperCase();
-            if(msg!=null){
-                this.getphonecode(msg);
+            let code=CryptoJS.MD5(CryptoJS.MD5(CryptoJS.MD5(currHour).toString().toUpperCase()).toString().toUpperCase()).toString().toUpperCase();
+            if(code!=null){
+                this.getphonecode(code);
             }
         }
     }

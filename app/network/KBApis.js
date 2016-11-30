@@ -16,10 +16,11 @@ export function getKBFileList(kb_id) {
  * @param parent_Kb_Id 父级文件夹Id
  * @returns {Promise.<T>}
  */
-export function createKb(kb_name, parent_Kb_Id) {
+export function createKb(kb_name, parent_Kb_Id,project_Id) {
   return postData('CreateKb', {
     KbName: kb_name,
-    ParentKbId:parent_Kb_Id
+    ParentKbId:parent_Kb_Id,
+    ProjectId:project_Id
   })
 }
 /**
@@ -143,8 +144,8 @@ export function getAttachmentComments(attachment_id, page_index) {
  * @param keyword 关键字
  * @returns {Promise.<T>}
  */
-export function search(kb_id,keyword){
-  return getData(`Search?KbId=${kb_id}&Keyword=${keyword}`)
+export function search(kb_id,keyword,project_Id){
+  return getData(`Search?KbId=${kb_id}&Keyword=${keyword}&ProjectId=${project_Id}`)
 }
 /**
  * 赞、取消赞
@@ -194,9 +195,10 @@ export function undoAttachment(attachment_id) {
  * @param files
  * @returns {*}
  */
-export function directUpload(kb_id, attachment_id, is_update_attachment,files) {
+export function directUpload(kb_id, project_Id,attachment_id, is_update_attachment,files) {
   return postFormData('DirectUpload', {
     kbId: kb_id,
+    ProjectId:project_Id,
     AttachmentId: attachment_id,
     isUpdateAttachment: is_update_attachment,
     Files: files
@@ -214,6 +216,6 @@ export function downloadAttachment(attachment_id){
  * 判断是否有管理员权限
  * @returns {Promise.<T>}
  */
-export function checkKBManager(){
-  return getData(`checkKBManager`)
+export function checkKBManager(kb_id,project_Id){
+  return getData(`checkKBManager?kbId=${kb_id}&ProjectId=${project_Id}`)
 }

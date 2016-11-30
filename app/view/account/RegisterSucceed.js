@@ -1,19 +1,17 @@
-
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+   Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
 import styles from "./style";
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
 
 
@@ -32,19 +30,9 @@ export default class RegisterSucceed extends React.Component{
         return(
             <View style={styles.recontainer}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>注册成功</Text>
-                     </View>
+                      <NavLeftView nav={this.props.nav} leftTitle="注册成功"/>
                    }/>
                 <View style={styles.rescontainer}>
                   <View style={styles.resimageView}>

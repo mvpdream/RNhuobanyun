@@ -1,29 +1,28 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+    Image,
   Text,
   StyleSheet,
   View,
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  ScrollView
+  ScrollView,
+  ProgressBarAndroid,
+  ActivityIndicator,
+  Dimensions
   } from 'react-native';
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
 import Icons from 'react-native-vector-icons/Ionicons';
-import ReportRules from './ReportRules';
 import api from "../../network/ApiHelper";
 import ReportList from './MyReportList.js'
 var dataSource = new ListView.DataSource({rowHasChanged: (row1, row2) => row1.title !== row2.title});
+
 
 export default class CreatReport extends React.Component {
   constructor(props) {
@@ -37,7 +36,8 @@ export default class CreatReport extends React.Component {
       dayList: dataSource.cloneWithRows({}),
       monthList: dataSource.cloneWithRows({}),
       weekList: dataSource.cloneWithRows({}),
-      isFetch:false
+      isFetch:false,
+      startLoad:true
     };
   }
 
@@ -49,10 +49,10 @@ export default class CreatReport extends React.Component {
   getUserrule() {
     api.Report.getTasterAndRules()
       .then((resData)=> {
-        this.setState({
-          remind: resData.remind
-        });
-        this.setState({isFetch:true})
+          this.setState({
+            remind: resData.remind
+          });
+          this.setState({isFetch:true,startLoad:false})
       })
   }
 
@@ -78,25 +78,22 @@ render()
   return (
     <View style={{flex:1}}>
       <NavigationBar
-        style={{height: 55,backgroundColor:'#175898'}}
+        style={styles.NavSty}
         leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>写汇报</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="写汇报"/>
                    }
         rightButton={
-
-                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.getRules.bind(this)}>
+         <View style={{flexDirection: 'row',alignItems: 'center'}}>
+                   {
+                        this.state.startLoad?<View style={styles.navLoadIcon}>
+                        <ActivityIndicator animating={true} color='white'/>
+                        </View>:null
+                   }
+                    <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.getRules.bind(this)}>
                     <Text numberOfLines={1} style={styles.rightNavText}>查看规则</Text>
                       </TouchableOpacity>
+                    </View>
+
                     } />
       <ScrollableTabView
         tabBarBackgroundColor='white'

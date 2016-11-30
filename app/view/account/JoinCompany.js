@@ -1,9 +1,7 @@
 
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+  Image,
     Text,
     StyleSheet,
     View,
@@ -11,12 +9,13 @@ import React, {
     ToastAndroid,
     TextInput,
   ScrollView
-    } from 'react-native';
+} from 'react-native';
+
 import styles from "./style";
-import Dimensions from 'Dimensions';
 import api from "../../network/ApiHelper";
-import Toast from  '@remobile/react-native-toast'
+
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
 
 export default class JoinCompany extends React.Component{
@@ -28,19 +27,19 @@ export default class JoinCompany extends React.Component{
     };
     joinCompany(){
         if(this.state.companyId==""||this.state.username==""){
-            Toast.show("请检查信息是否输入完整","short");
+            ToastAndroid.show("请检查信息是否输入完整",ToastAndroid.SHORT);
         }
         else{
             api.Company.joinCompany(this.state.companyId,this.state.username)
                 .then((resData)=>{
                     if(resData.Type==1){
-                        Toast.show(resData.Data,"short");
+                        ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
                         this.props.nav.push({
                             id:'SelectCompany'
                         });
                     }
                     else {
-                        Toast.show(resData.Data,"short");
+                        ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
                     }
                 });
         }
@@ -49,19 +48,9 @@ export default class JoinCompany extends React.Component{
         return(
             <View style={styles.recontainer}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>加入企业</Text>
-                     </View>
+                    <NavLeftView nav={this.props.nav} leftTitle="加入企业"/>
                    }/>
                 <View style={styles.container}>
                     <ScrollView keyboardShouldPersistTaps={true} showsVerticalScrollIndicator={false}>
@@ -73,7 +62,7 @@ export default class JoinCompany extends React.Component{
                                 underlineColorAndroid="transparent"
                                 onFocus={()=>{this._onFocus(0)}}
                                 placeholder ="输入企业号"
-                                textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({companyId: text})} />
+                                 style={styles.TextInputs} onChangeText={(text) => this.setState({companyId: text})} />
                         </View>
 
                         <Text style={styles.titletext}>用户姓名</Text>
@@ -83,7 +72,7 @@ export default class JoinCompany extends React.Component{
                                 underlineColorAndroid="transparent"
                                 onFocus={()=>{this._onFocus(1)}}
                                 placeholder ="输入用户姓名"
-                                textAlignVertical={'center'} textAlign={'start'} style={styles.TextInputs} onChangeText={(text) => this.setState({username: text})} />
+                                style={styles.TextInputs} onChangeText={(text) => this.setState({username: text})} />
                         </View>
                     </View>
                     <TouchableOpacity style={styles.joincomTou} onPress={this.joinCompany.bind(this)}>

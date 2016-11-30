@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+ Image,
   Text,
   StyleSheet,
   View,
@@ -12,17 +8,15 @@ import React, {
   ToastAndroid,
   ListView,
   ScrollView,
-  TouchableHighlight
+  TouchableHighlight,
+  Dimensions
   } from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
-import NavigationBar from 'react-native-navigation-bar';
-import ReportRules from './ReportRules';
 import api from "../../network/ApiHelper";
-import Toast from  '@remobile/react-native-toast'
 var dataSource = new ListView.DataSource({rowHasChanged: (row1, row2) => row1.title !== row2.title});
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
@@ -39,27 +33,30 @@ export default class ReportList extends React.Component {
       reportList: dataSource.cloneWithRows({}),
       reportUserId:this.props.userId
     };
-  }
-
-;
-  componentDidMount() {
-    if(this.props.userId!=0){
+  };
+    componentDidMount() {
+    if (this.props.userId != 0) {
       loaderHandler.showLoader("加载中...");
-    this.fetchData(this.props.reportType,this.props.userId)
+      this.fetchData(this.props.reportType, this.props.userId, this.state.month, this.state.year);
     }
   }
-  startLoad(subordinateId){
-    this.setState({reportUserId:subordinateId});
-    this.fetchData(this.props.reportType,subordinateId)
+    startLoad(subordinateId) {
+    this.setState({reportUserId: subordinateId});
+    this.fetchData(this.props.reportType, subordinateId, this.state.month, this.state.year)
   }
-  fetchData(type,subordinateId) {
-    if(subordinateId!=null){
-      api.Report.getReportListByUser(subordinateId, type, this.state.year, this.state.month)
+  fetchData(type, subordinateId, month, year) {
+    if (subordinateId != null) {
+      api.Report.getReportListByUser(subordinateId, type, year, month)
         .then((resData)=> {
           loaderHandler.hideLoader();
-          this.setState({
-            reportList: dataSource.cloneWithRows(resData.Data)
-          });
+          if (resData.Type == 1) {
+            this.setState({
+              reportList: dataSource.cloneWithRows(resData.Data)
+            });
+          } else {
+            ToastAndroid.show("未知错误",ToastAndroid.SHORT)
+          }
+
         })
     }
   };
@@ -77,6 +74,21 @@ export default class ReportList extends React.Component {
     });
 
   };
+  reportdetail(Id, type) {
+    var reportItem = {
+      Id: Id,
+      type: type,
+      typeName: "subordinate",
+      userId: this.props.userId,
+      username: this.props.username
+    };
+    this.props.nav.push({
+      id: 'ReportDetail',
+      reportItem: reportItem
+    });
+
+  };
+
   reportItem(type, item, sectionId, rowId) {
     var dateType = "";
     switch (type) {
@@ -92,8 +104,8 @@ export default class ReportList extends React.Component {
       default:
         break;
     }
-    var Submitted="";
-    var IsTemp="";
+    var Submitted = "";
+    var IsTemp = "";
     if (!item.Submitted) {
       Submitted = "未提交"
     }
@@ -107,19 +119,21 @@ export default class ReportList extends React.Component {
     }
 
     return (
-      this.props.userId!=0&&item.Submitted?
-      <TouchableOpacity onPress={this.reportdetail.bind(this,item.Id,type)}>
-        <View style={[item.Highlight?styles.dailyReportItems:styles.dailyReportItem]}>
+      this.props.userId != 0 && item.Submitted ?
+        <TouchableOpacity onPress={this.reportdetail.bind(this, item.Id, type)}>
+          <View style={[item.Highlight ? styles.dailyReportItems : styles.dailyReportItem]}>
+            <Text
+              style={styles.text}>{`${+rowId + 1} ${dateType}${item.Description}`} {IsTemp} {Submitted}</Text>
+          </View>
+        </TouchableOpacity>
+        : item.Writable ? <TouchableOpacity onPress={()=> {
+          ToastAndroid.show("没有相关的汇报数据",ToastAndroid.SHORT)
+      }}>
+        <View style={[item.Highlight ? styles.dailyReportItems : styles.dailyReportItem]}>
           <Text
             style={styles.text}>{`${+rowId + 1} ${dateType}${item.Description}`} {IsTemp} {Submitted}</Text>
         </View>
-      </TouchableOpacity>
-       :item.Writable?<TouchableOpacity onPress={()=>{Toast.show('没有相关的汇报数据',"short");}}>
-        <View style={[item.Highlight?styles.dailyReportItems:styles.dailyReportItem]}>
-          <Text
-            style={styles.text}>{`${+rowId + 1} ${dateType}${item.Description}`} {IsTemp} {Submitted}</Text>
-        </View>
-      </TouchableOpacity>:<View style={[item.Highlight?styles.dailyReportItems:styles.dailyReportnoItem]}>
+      </TouchableOpacity> : <View style={[item.Highlight ? styles.dailyReportItems : styles.dailyReportnoItem]}>
         <Text
           style={styles.text}>{`${+rowId + 1} ${dateType}${item.Description}`}</Text>
       </View>
@@ -128,53 +142,58 @@ export default class ReportList extends React.Component {
 
 
   };
-  last(type)
-  {
-    if(this.state.reportUserId==0){
-      Toast.show('请先选择下属进行查看！',"short");
+
+  last(type) {
+    if (this.state.reportUserId == 0) {
+      ToastAndroid.show("请先选择下属进行查看！",ToastAndroid.SHORT)
       return;
     }
+    var year = this.state.year;
     if (type == 2) {
+      var year = this.state.year - 1;
       this.setState({
-        year: this.state.year - 1,
+        year: year,
       });
     }
     else {
-      this.setState({
-        month: this.state.month - 1,
-      });
-      if (this.state.month < 1) {
+      var month = this.state.month - 1;
+      this.setState({month});
+      if (month < 1) {
+        var year = this.state.year - 1;
         this.setState({
-          year: this.state.year - 1,
+          year: year,
           month: 12,
         });
       }
     }
-    this.fetchData(type,this.state.reportUserId);
+    this.fetchData(type, this.state.reportUserId, month, year);
+
   }
-  next(type)
-  {
-    if(this.state.reportUserId==0){
-      Toast.show('请先选择下属进行查看！',"short");
+
+  next(type) {
+    if (this.state.reportUserId == 0) {
+      ToastAndroid.show("请先选择下属进行查看！",ToastAndroid.SHORT);
       return;
     }
+    var year = this.state.year;
     if (type == 2) {
+      var year = this.state.year + 1;
       this.setState({
-        year: this.state.year + 1,
+        year: year,
       });
     }
     else {
-      this.setState({
-        month: this.state.month + 1
-      });
-      if (this.state.month > 12) {
+      var month = this.state.month + 1;
+      this.setState({month});
+      if (month > 12) {
+        var year = this.state.year + 1;
         this.setState({
-          year: this.state.year + 1,
+          year: year,
           month: 1
         });
       }
     }
-    this.fetchData(type,this.state.reportUserId);
+    this.fetchData(type, this.state.reportUserId, month, year);
   }
   render()
   {
@@ -202,13 +221,17 @@ export default class ReportList extends React.Component {
                       </View>
                     </TouchableHighlight >
                   </View>
-                  <ListView
-                    dataSource={this.state.reportList}
-                    renderRow={this.reportItem.bind(this,this.props.reportType)}
-                    />
+                  <View style={{flex:1}}>
+                    <ListView
+                     removeClippedSubviews={false}
+                        enableEmptySections={true}
+                      dataSource={this.state.reportList}
+                      renderRow={this.reportItem.bind(this,this.props.reportType)}
+                      />
+                    <BusyIndicator bgColor="transparent" color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#6d6d6d' textColor='white' />
+                  </View>
                 </View>
               </View>
-        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
           </View>
 
     );

@@ -3,11 +3,11 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
+  Dimensions
+  } from 'react-native'
 var {height, width} = Dimensions.get('window');
 module.exports = StyleSheet.create({
   container:{
@@ -180,8 +180,7 @@ module.exports = StyleSheet.create({
   },
   DetailTitle:{
     alignItems: 'center',
-    flexDirection: 'row',
-    paddingBottom:10
+    flexDirection: 'row'
   },
   NormalDetailView:{
     alignItems: 'center',
@@ -198,8 +197,7 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     borderRadius:10,
     borderColor: 'gray',
-    borderWidth: 1.5,
-    marginTop:5
+    borderWidth: 1.5
   },
   circleSmallView:{
     width: 12,
@@ -210,19 +208,32 @@ module.exports = StyleSheet.create({
     borderRadius:6
   },
   MyAtdDetailView:{
-    marginLeft:10,
-    borderLeftColor: 'gray',
-    borderLeftWidth: 1,
-    marginTop:-10
+    marginLeft:10
   },
   MyAtdDetailViews:{
     marginLeft:15,
     paddingTop:10,
     paddingBottom:10
   },
+  DetailItemTitle:{
+    alignItems:'center',
+    flexDirection:'row',
+    height:30
+  },
+  borderView:{
+    height:0,
+    borderLeftColor:'gray',
+    borderLeftWidth: 1,
+    marginTop:-1,
+    marginLeft:10
+  },
   noData:{
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  noRuleData:{
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   cardText:{
     alignItems: 'center',
@@ -238,14 +249,36 @@ module.exports = StyleSheet.create({
   navLeftText:{
     width:Dimensions.get('window').width*0.5,
     color: 'white',
-    fontSize:18
+    fontSize:16
   },
   touIcon:{
     height:55,
     width:35,
     alignItems: 'center',
     justifyContent: 'center'
-  }
+  },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  },
+  navLeftIcon:{
+    height:55,
+    width:35,
+    paddingRight:5,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+    repositionView: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row'
+  },
+  repositionText: {
+    fontSize: 14,
+    fontWeight:"300",
+    color:'blue',
+    marginLeft:3
+  },
 
 
 });

@@ -1,9 +1,5 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   TextInput,
@@ -13,17 +9,18 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import colorManager from '../common/styles/manager'
 import styles from "./style";
 import Icons from 'react-native-vector-icons/Ionicons'
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
-import Toast from  '@remobile/react-native-toast'
+
 
 export default class SearchAddress extends React.Component {
   constructor(props){
@@ -79,7 +76,7 @@ export default class SearchAddress extends React.Component {
   };
   search(){
     if(this.state.keywords==""){
-      Toast.show("请输入搜索关键字","short");
+      ToastAndroid.show("请输入搜索关键字",ToastAndroid.SHORT);
       return;
     }
     else{
@@ -92,7 +89,7 @@ export default class SearchAddress extends React.Component {
          <View style={{height: 55,alignItems: 'center',backgroundColor:colorManager.getCurrentStyle().NAVCOLOR,flexDirection: 'row',}}>
            <TouchableOpacity onPress={() => {this.props.nav.pop();}}>
              <Icons
-               name="android-arrow-back"
+               name="md-arrow-round-back"
                size={28}
                color="white"
                style={styles.serchImg}
@@ -110,8 +107,10 @@ export default class SearchAddress extends React.Component {
                 placeholder=" 关键字"
                 autoFocus={true}
                 textAlignVertical='center'
+                returnKeyType='search'
+                onSubmitEditing={this.search.bind(this)}
                 onChangeText={(text) => this.setState({keywords: text})}
-                style={{flex:1,width:Dimensions.get('window').width*0.6}}
+                style={{flex:1,padding:0,width:Dimensions.get('window').width*0.6}}
                 />
             </View>
            <TouchableOpacity style={{padding:10}} onPress={this.search.bind(this)}>
@@ -132,6 +131,8 @@ export default class SearchAddress extends React.Component {
               </View>
               :<ScrollView keyboardShouldPersistTaps={true} keyboardDismissMode ='on-drag'><ListView
               dataSource={this.state.UserData}
+              removeClippedSubviews={false}
+               enableEmptySections={true}
               renderRow={this.userItems.bind(this)}
               style={{backgroundColor: 'white'}}/></ScrollView>
           }

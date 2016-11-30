@@ -1,17 +1,18 @@
 /**
  * Sample React Native App
  * https://github.com/facebook/react-native
+ * @flow
  */
-'use strict';
-import React, {
+
+import React, { Component } from 'react';
+import {
   AppRegistry,
-  Component,
   StyleSheet,
   Text,
   View
 } from 'react-native';
 
-class RNhuobanyun extends Component {
+export default class HuoBanYunApp extends Component {
   render() {
     return (
       <View style={styles.container}>
@@ -49,4 +50,4 @@ const styles = StyleSheet.create({
   },
 });
 
-AppRegistry.registerComponent('RNhuobanyun', () => RNhuobanyun);
+AppRegistry.registerComponent('HuoBanYunApp', () => HuoBanYunApp);

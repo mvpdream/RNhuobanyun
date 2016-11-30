@@ -1,25 +1,21 @@
-/**
- * Created by lizx on 2016/2/3.
- */
-/**
- * Created by wangshuo on 2016/2/3.
- */
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+  Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     TextInput,
-    Component
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import api from "../../network/ApiHelper";
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
-import Toast from  '@remobile/react-native-toast'
+
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
 
 
@@ -29,27 +25,27 @@ export default class ResetPassword extends React.Component{
         const nav = this.props.nav;
         this.state={
             NewPassword:"",
-           enterNewPassword:""
+            enterNewPassword:""
         };
     };
     savePas(){
         if(this.state.NewPassword!=this.state.enterNewPassword){
-            Toast.show("两次输入的密码不一致","short");
+            ToastAndroid.show("两次输入的密码不一致",ToastAndroid.SHORT);
             return;
         }
 
         if(this.state.NewPassword==""||this.state.enterNewPassword==""){
-          Toast.show("输入项不能为空","short");
+          ToastAndroid.show("输入项不能为空",ToastAndroid.SHORT);
           return;
         }
         if(this.state.NewPassword.indexOf(" ")>-1&&this.state.enterNewPassword.indexOf(" ")>-1){
-          Toast.show("输入项中不能有空格","short");
+          ToastAndroid.show("输入项中不能有空格",ToastAndroid.SHORT);
           return;
         }
         else{
             api.User.findPassword(this.props.phonenum,this.state.NewPassword)
               .then((resData)=>{
-                Toast.show(resData.Data,"short");
+                ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
                   if(resData.Type==1){
                       this.props.nav.push({
                           id: 'Login'
@@ -62,19 +58,9 @@ export default class ResetPassword extends React.Component{
         return (
           <View style={styles.containersw}>
             <NavigationBar
-              style={{height: 55,backgroundColor:'#175898'}}
+              style={styles.NavSty}
               leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>重置密码</Text>
-                     </View>
+                     <NavLeftView nav={this.props.nav} leftTitle="重置密码"/>
                    }/>
 
               <View style={styles.updatepasView}>

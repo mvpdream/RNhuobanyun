@@ -3,11 +3,11 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
+  Dimensions
+  } from 'react-native'
 var {height, width} = Dimensions.get('window');
 module.exports = StyleSheet.create({
   nomText:{
@@ -83,10 +83,6 @@ module.exports = StyleSheet.create({
     marginTop:5,
     alignItems: 'center',
     flexDirection: 'row'
-  },
-  modal: {
-    justifyContent: 'center',
-    alignItems: 'center'
   },
   modal3: {
     height: Dimensions.get('window').height*0.8,
@@ -281,7 +277,87 @@ module.exports = StyleSheet.create({
     borderWidth:1,
     marginLeft:2.5,
     padding:2
-  }
+  },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  },
+  navLeftText:{
+    width:Dimensions.get('window').width*0.5,
+    color: 'white',
+    fontSize:18
+  },
+  comInput: {
+    fontSize: 16,
+    paddingLeft: 5,
+    backgroundColor: 'white'
+  },
+  comView:{
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    marginTop: 5
+  },
+  comView1:{
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  NavBarSty: {
+    height: 55,
+    backgroundColor: '#175898'
+  },
+  modal: {
+    padding:15,
+    borderRadius: 10,
+    height: Dimensions.get('window').height * 0.55,
+    width: Dimensions.get('window').width*0.75
+  },
+  modalTitleView:{
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  updateText:{
+    color: 'black',
+    fontWeight:"500",
+    fontSize:18
+  },
+  versioNumText:{
+    color: 'gray',
+    fontWeight:"400",
+    fontSize:16
+  },
+  btnText:{
+    color: 'black',
+    fontWeight:"400",
+    fontSize:15
+  },
+  updateContent:{
+    color: 'black',
+    fontSize:14,
+    width:Dimensions.get('window').width*0.75-35,
+    lineHeight:20
+  },
+  contentView:{
+    marginTop:5,
+    flex:1,
+    marginBottom:10
+  },
+  btnView:{
+    borderColor: '#AEAEAE',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingTop:10,
+    paddingBottom:10,
+    paddingLeft:20,
+    paddingRight:20
+  },
+  btnContainer:{
+    flex:1,
+    alignItems: 'center',
+    height:40
+  },
 
 });
 

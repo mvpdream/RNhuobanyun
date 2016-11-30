@@ -1,21 +1,18 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+   Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    Component
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var {height, widths} = Dimensions.get('window');
@@ -47,7 +44,8 @@ export default class KbCellItem extends React.Component{
           updateFileName:this.props.updateFileName,
           removeFile:this.props.removeFile,
           lockFile:this.props.lockFile,
-          updateFile:this.props.updateFile
+          updateFile:this.props.updateFile,
+          project:this.props.project&&this.props.project
         })
       }
       if(item.Type==3){

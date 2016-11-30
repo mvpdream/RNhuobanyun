@@ -1,9 +1,5 @@
-/**
- * Created by wangshuo on 2016/3/1.
- */
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   TextInput,
@@ -13,17 +9,16 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Component,
   Alert,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import CircleCheckBox from 'react-native-circle-checkbox';
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var AlphabetListView = require('react-native-alphabetlistview');
-import ActionButton from 'react-native-action-button';
 var Contacts = require('react-native-contacts');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
@@ -31,10 +26,13 @@ import _ from 'lodash';
 var _this=null;
 var alluser=[];
 var cellthis=null;
-import Toast from  '@remobile/react-native-toast'
+
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
-import Popup from 'react-native-popup';
+
+var CheckBoxData=[];
+var select=false;
 
 //标题字母
 class SectionHeader extends Component {
@@ -80,23 +78,70 @@ class Cell extends Component {
     };
     cellthis=this;
   };
-  checkItem(){
-    this.setState({checkState: !this.state.checkState});
-    if(this.state.checkState){
-      _this.state.selectedItem.push(this.props.item);
+  checkItem(flag){
+    let checkState;
+    if(flag==1){
+      checkState=true;
+    }
+    else if(flag==2){
+      checkState=false;
     }
     else{
-      var _index=_this.state.selectedItem.indexOf(this.props.item);
-      if(_index>-1){
-        _this.state.selectedItem.splice(_index,1)
+      checkState=!this.state.checkState;
+    }
+    this.setState({checkState:checkState});
+
+  };
+  unique(arr){
+    // 数组去重,然后保留一个
+    var tmp = new Array();
+    for(var i in arr){
+      if(tmp.indexOf(arr[i])==-1){
+        tmp.push(arr[i]);
       }
     }
-  };
+    return tmp;
+  }
+  initCheckBoxData(checkbox){
+      if(!select&&checkbox!=null) {
+        CheckBoxData.push(checkbox);
+      }
+      if(checkbox&&checkbox.props.checked){
+        _this.state.selectedItem.push(this.props.item);
+        var newArr=this.unique(_this.state.selectedItem);
+        _this.state.selectedItem=newArr;
+      }
+      if(checkbox&&!checkbox.props.checked){
+        var _index=_this.state.selectedItem.indexOf(this.props.item);
+        if(_index>-1){
+          _this.state.selectedItem.splice(_index,1)
+        }
+      }
+
+
+  }
+  SelectAll(){
+    select=true;
+    for (var i = 0; i < CheckBoxData.length; i++) {
+      if(CheckBoxData[i]!=null){
+        CheckBoxData[i].props.onToggle(1);
+      }
+    }
+  }
+  NoSelectAll(){
+    select=true;
+    for (var i = 0; i < CheckBoxData.length; i++) {
+      if(CheckBoxData[i]!=null){
+        CheckBoxData[i].props.onToggle(2);
+      }
+    }
+  }
   render() {
     return (
       <TouchableOpacity onPress={this.checkItem.bind(this)}>
         <View style={styles.container}>
             <CircleCheckBox
+              ref={(c)=>this.initCheckBoxData(c)}
             checked={this.state.checkState}
             outerColor='#175898'
             innerColor='#175898'
@@ -134,11 +179,17 @@ export default class ExportAddress extends React.Component {
     _this=this;
   };
   componentDidMount(){
+    select=false;
    api.OS.getUserListGroupByPrefix()
     .then((resData)=>{
-       this.setState({
-         data:resData.Data
-       });
+       if(resData.Type==1){
+         this.setState({
+           data:resData.Data
+         });
+       }else{
+         ToastAndroid.show("获取失败",ToastAndroid.SHORT);
+       }
+
      })
   };
   isout(){
@@ -157,7 +208,7 @@ export default class ExportAddress extends React.Component {
     Contacts.addContact(ContItem, (err) => {
         loaderHandler.hideLoader();
         if(err){
-          Toast.show("保存失败，请重试","short");
+          ToastAndroid.show("保存失败，请重试",ToastAndroid.SHORT);
         }
         else {
           alluser.push(ContItem);
@@ -182,9 +233,9 @@ export default class ExportAddress extends React.Component {
                       Contacts.getAll((err, contacts) => {
                         var that=this;
                         if(err && err.type === 'permissionDenied'){
-                          Toast.show("获取联系人失败","short");
+                          ToastAndroid.show("获取联系人失败",ToastAndroid.SHORT);
                         } else {
-                          loaderHandler.showLoader("正在导出。。。");
+                          loaderHandler.showLoader("导出。。。");
                           api.OS.groupImportUserInfo(newaddress)
                             .then((resData)=>{
                               var duplicatedUsers=[];
@@ -240,28 +291,37 @@ export default class ExportAddress extends React.Component {
     }
 
   };
+  allSelect(){
+    cellthis.SelectAll();
+  }
+  allNoSelect(){
+    cellthis.NoSelectAll();
+  }
   render() {
     return (
       <View style={{flex:1}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-             <View style={styles.navLeftBtn}>
-             <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                <Icons
-                  name="android-arrow-back"
-                  size={28}
-                  color="white"
-                  onPress={() => {this.props.nav.pop()}}
-                />
-                 </TouchableOpacity>
-                 <Text numberOfLines={1} style={styles.navLeftText}>导出联系人</Text>
-             </View>
-           }/>
+          <NavLeftView nav={this.props.nav} leftTitle="导出联系人"/>
+           }
+          rightButton={
+            <View style={{justifyContent: 'center',flexDirection: 'row'}}>
+              <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.allSelect.bind(this)}>
+                <Text numberOfLines={1} style={styles.rightNavText}>全选</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.allNoSelect.bind(this)}>
+                <Text numberOfLines={1} style={styles.rightNavText}>全不选</Text>
+              </TouchableOpacity>
+            </View>
+          }
+         />
       <AlphabetListView
         data={this.state.data}
         cell={Cell}
         cellHeight={70}
+        removeClippedSubviews={false}
+         enableEmptySections={true}
         sectionListItem={SectionItem}
         sectionHeader={SectionHeader}
         sectionHeaderHeight={29}
@@ -273,7 +333,6 @@ export default class ExportAddress extends React.Component {
             </TouchableOpacity>
           </View>
         </View>
-        <Popup ref={(popup) => { this.popup = popup }}/>
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
 
         </View>

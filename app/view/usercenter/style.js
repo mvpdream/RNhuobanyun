@@ -3,14 +3,14 @@
  */
 'use strict';
 import colorManager from '../common/styles/manager'
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
-var {height, widths} = Dimensions.get('window');  //»ñÈ¡ÆÁÄ»¿í¸ß
+  Dimensions
+  } from 'react-native'
+var {height, widths} = Dimensions.get('window');  //ï¿½ï¿½È¡ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½
 var WINDOW_HEIGHT = Dimensions.get('window').height;
-var LIST_HEIGHT = WINDOW_HEIGHT - 80; //¼ÆËã³ö¹ö¶¯ÇøÓòµÄ¸ß¶È
+var LIST_HEIGHT = WINDOW_HEIGHT - 80; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ß¶ï¿½
 
 var WINDOW_WIDTH = Dimensions.get('window').width;
 var LIST_INFO_WIDTH = WINDOW_WIDTH - 90;
@@ -109,15 +109,20 @@ module.exports = StyleSheet.create({
     height: 40,
     borderRadius: 90
   },
+  loaderThumbnail:{
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   usersafeView: {
     borderBottomColor: '#dddddd',
     borderBottomWidth: 1,
-    padding: 15,
+    padding: 10,
     paddingLeft: 10,
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor:'white'
   },
   updatepasView: {
@@ -127,9 +132,7 @@ module.exports = StyleSheet.create({
   },
   updatepasTextIn: {
     height: 40,
-    fontSize: 17,
-    borderColor: 'black',
-    borderWidth: 1
+    fontSize: 17
   },
   usersafeText: {
     fontSize: 18,
@@ -229,8 +232,28 @@ module.exports = StyleSheet.create({
   },
   rightNavText:{
     color: 'white',
-    fontSize:18
-  }
+    fontSize:16
+  },
+  navLoadIcon:{
+    width:25,
+    height:25,
+    justifyContent: 'center',
+    marginRight:10
+  },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  },
+
+  updateViews: {
+    borderBottomColor: '#dddddd',
+    borderBottomWidth: 1,
+    paddingLeft: 12,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginTop: 1
+  },
+
 
 
 });

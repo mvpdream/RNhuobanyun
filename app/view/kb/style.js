@@ -3,11 +3,11 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
+  Dimensions
+  } from 'react-native'
 var {height, width} = Dimensions.get('window');
 module.exports = StyleSheet.create({
   openViewView:{
@@ -27,20 +27,19 @@ module.exports = StyleSheet.create({
     position:'relative',
     top:55,
     right:5,
-    left:Dimensions.get('window').width*0.58,
+    left:Dimensions.get('window').width-150,
     bottom:10
   },
   openViewsView:{
     backgroundColor:'#F2F2F2',
-    width:Dimensions.get('window').width*0.40
   },
   modalTextView:{
     borderBottomColor:'#D7D7D7',
     borderBottomWidth:1,
     paddingTop:12,
     paddingBottom:12,
-    marginLeft:20,
-    marginRight:20,
+    marginLeft:10,
+    marginRight:10,
     flexDirection: 'row',
     alignItems: 'center'
   },
@@ -236,6 +235,17 @@ module.exports = StyleSheet.create({
     fontSize: 14,
     paddingTop: 10,
     color: 'black'
+  },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  },
+  navLeftIcon:{
+    height:55,
+    width:35,
+    paddingRight:5,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 });
 

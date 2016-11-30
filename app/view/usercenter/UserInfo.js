@@ -1,25 +1,26 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+ Image,
   Text,
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
   ToastAndroid,
-  ListView
-  } from 'react-native';
+  ListView,
+  ProgressBarAndroid,
+  ActivityIndicator,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import api from "../../network/ApiHelper";
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
+import InputScrollView from 'react-native-inputscrollview';
 
 
 
@@ -29,16 +30,25 @@ export default class UserInfo extends React.Component {
     const nav = this.props.nav;
     this.state = {
       user:[],
-      isFetch:false
+      isFetch:false,
+      startLoad:true
     };
   };
   componentDidMount() {
     api.User.getUserProfile()
       .then((resData)=>{
-        this.setState({
-          isFetch:true,
-          user:resData.Data
-        });
+        if(resData.Type==1){
+          this.setState({
+            startLoad:false,
+            isFetch:true,
+            user:resData.Data
+          });
+        }else{
+          this.setState({
+            isFetch:false
+          });
+        }
+
       })
   }
   editUser() {
@@ -46,49 +56,27 @@ export default class UserInfo extends React.Component {
       id: 'UpdateUser',
       userData:this.state.user
     });
-  }
+  };
 
-;
-  userItem(item) {
-    return (
-      <View style={styles.listRow}>
-        <View>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.year}>{item.cont}</Text>
-        </View>
-      </View>
-    );
-
-  }
-
-;
   render() {
-    var toolbarActions = [
-      {title: '编辑', show: 'always'},
-    ];
     return (
       <View style={styles.containersw}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>个人资料</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="个人资料"/>
                    }
           rightButton={
-                   this.state.isFetch?<TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.editUser.bind(this)}>
+                   this.state.isFetch?<TouchableOpacity style={{marginRight:10,alignItems: 'center',flexDirection: 'row'}} onPress={this.editUser.bind(this)}>
+                    {
+                        this.state.startLoad?<View style={styles.navLoadIcon}>
+                        <ActivityIndicator animating={true} color='white'/>
+                        </View>:null
+                   }
                     <Text numberOfLines={1} style={styles.rightNavText}>编辑</Text>
                       </TouchableOpacity>:<Text/>
                     } />
-        {this.state.isFetch?<ScrollView keyboardShouldPersistTaps={true}>
+        {this.state.isFetch? <InputScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.container}>
             <Image
               source={{uri:this.state.user&&this.state.user.Avatar}}
@@ -135,7 +123,7 @@ export default class UserInfo extends React.Component {
             </View>
           </View>
 
-        </ScrollView>:null}
+        </InputScrollView>:null}
 
       </View>
 

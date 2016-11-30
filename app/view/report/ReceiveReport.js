@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+ Image,
   Text,
   StyleSheet,
   View,
@@ -12,17 +8,18 @@ import React, {
   ToastAndroid,
   ScrollView,
   ListView,
-  ProgressBarAndroid
+  ProgressBarAndroid,
+  Dimensions
   } from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons';
-import ReportRules from './ReportRules';
 import _ from 'lodash';
 import ReceiveReportList from './ReceiveReportList.js'
 
@@ -70,19 +67,9 @@ export default class ReceiveReport extends React.Component {
     return (
       <View style={{flex: 1,backgroundColor:'#E4E4E4',}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>收到的汇报</Text>
-                     </View>
+                <NavLeftView nav={this.props.nav} leftTitle="收到的汇报"/>
                    }
           rightButton={
                    <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.getUncommittedReport.bind(this)}>

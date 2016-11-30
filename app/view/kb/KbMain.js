@@ -1,21 +1,18 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+  Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    Component
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var {height, widths} = Dimensions.get('window');
@@ -26,7 +23,7 @@ import api from "../../network/ApiHelper";
 var ImagePickerManager = require('NativeModules').ImagePickerManager;
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
-import Toast from  '@remobile/react-native-toast'
+
 import { Bubbles, DoubleBounce, Bars, Pulse } from 'react-native-loader';
 var hasManagePermission;
 
@@ -37,64 +34,38 @@ class KbMenuView extends Component {
             openView:false
         }
     }
-    checkKBManager(){
-      if(_this.props.kbId==null){
-        api.KB.checkKBManager()
-          .then((res)=>{
-            if(res.Type==1){
-              if(res.Data){
-                //是管理员，有权限操作
-                hasManagePermission=true;
-              }else{
-                hasManagePermission=false;
-              }
-            }else{
-              Toast.show("获取身份出错","short");
-            }
-          })
-      }
-      else{
-        if(_this.props.managePermission){
-          hasManagePermission=true;
-        }else{
-          hasManagePermission=false;
+  componentDidMount() {
+    api.KB.checkKBManager(_this.props.kbId==null?0:_this.props.kbId,_this.props.project&&_this.props.project.projectId)
+      .then((res)=> {
+        if (res.Type == 1) {
+          if (res.Data) {
+            //是管理员，有权限操作
+            hasManagePermission = true;
+            return true;
+          } else {
+            hasManagePermission = false;
+            return false;
+          }
+        } else {
+          ToastAndroid.show("获取身份出错",ToastAndroid.SHORT);
         }
-      }
-    }
-    uploadFile(){
-      this.close();
-      if(_this.props.kbId==null){
-        api.KB.checkKBManager()
-          .then((res)=>{
-            if(res.Type==1){
-              if(res.Data){
-                //是管理员，有权限操作
-                _this.props.nav.push({
-                    id:'FileSelector',
-                    getSelFile:(item)=>{this.getFiles(item)}
-                  }
-                );
-              }else{
-                Toast.show("没有权限操作","short");
-              }
-            }else{
-              Toast.show("获取身份出错","short");
-            }
-          })
-      }
-      else{
-        if(_this.props.managePermission){
-          _this.props.nav.push({
-              id:'FileSelector',
-              getSelFile:(item)=>{this.getFiles(item)}
-            }
-          );
-        }else{
-          Toast.show("没有权限操作","short");
-        }
-      }
+      });
+  }
 
+  uploadFile() {
+    this.close();
+    if(hasManagePermission){
+      _this.props.nav.push({
+          id: 'FileSelector',
+          getSelFile: (item)=> {
+            this.getFiles(item)
+          }
+        }
+      );
+    }else{
+      ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
     }
+  }
   getFiles(files){
     if(files!=null){
       var filesData=[{
@@ -115,162 +86,105 @@ class KbMenuView extends Component {
       });
       this.uploadFun(fileData);
     }
-    uploadImages(){
+    uploadImages() {
       this.close();
-      if(_this.props.kbId==null){
-        api.KB.checkKBManager()
-          .then((res)=>{
-            if(res.Type==1){
-              if(res.Data){
-                //是管理员，有权限操作
-                _this.props.nav.push({
-                  id: 'PhotoSelector',
-                  getSelImg:(images)=>{this.getImgs(images)}
-                })
-              }else{
-                Toast.show("没有权限操作","short");
-              }
-            }else{
-              Toast.show("获取身份出错","short");
-            }
-          })
+      if(hasManagePermission){
+        //是管理员，有权限操作
+        _this.props.nav.push({
+          id: 'PhotoSelector',
+          getSelImg: (images)=> {
+            this.getImgs(images)
+          }
+        })
+      }else{
+        ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
       }
-      else{
-        if(_this.props.managePermission){
-          _this.props.nav.push({
-            id: 'PhotoSelector',
-            getSelImg:(images)=>{this.getImgs(images)}
-          })
-        }else{
-          Toast.show("没有权限操作","short");
+    }
+  open() {
+    api.KB.checkKBManager(_this.props.kbId==null?0:_this.props.kbId,_this.props.project&&_this.props.project.projectId)
+      .then((res)=> {
+        if (res.Type == 1) {
+          if (res.Data) {
+            //是管理员，有权限操作
+            hasManagePermission = true;
+            return true;
+          } else {
+            hasManagePermission = false;
+            return false;
+          }
+        } else {
+          ToastAndroid.show("获取身份出错",ToastAndroid.SHORT);
         }
-      }
-    }
-    open(){
-        this.setState({openView:true})
-    }
-  close(){
-    this.setState({openView:false})
+      });
+    this.setState({openView: true})
   }
-    creatKB(){
+    close(){
+      this.setState({openView:false})
+    }
+    creatKB() {
       this.close();
-      if(_this.props.kbId==null){
-        api.KB.checkKBManager()
-          .then((res)=>{
-            if(res.Type==1){
-              if(res.Data){
-                //是管理员，有权限操作
-                _this.setState({
-                  promptVisible: true
-                })
-              }else{
-                Toast.show("没有权限操作","short");
-              }
-            }else{
-              Toast.show("获取身份出错","short");
-            }
-          })
-      }
-      else{
-        if(_this.props.managePermission){
-          _this.setState({
-            promptVisible: true
-          })
-        }else{
-          Toast.show("没有权限操作","short");
-        }
+      if(hasManagePermission){
+        //是管理员，有权限操作
+        _this.setState({
+          promptVisible: true
+        })
+      }else{
+        ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
       }
     }
   uploadImage(){
     this.close();
-    if(_this.props.kbId==null){
-      api.KB.checkKBManager()
-        .then((res)=>{
-          if(res.Type==1){
-            if(res.Data){
-              //是管理员，有权限操作
-              var options = {
-                maxWidth: 1000,
-                maxHeight: 1000,
-                aspectX: 1,
-                aspectY: 1,
-                quality: 1,
-                allowsEditing: false
-              };
-              ImagePickerManager.launchCamera(options, (response)  => {
-                // Same code as in above section!
-                if (response.didCancel) {
-                  ///console.log('User cancelled image picker');
-                }
-                else if (response.error) {
-                  //console.log('ImagePickerManager Error: ', response.error);
-                  Toast.show('出现未知错误',"short");
+    if(hasManagePermission){
+      //是管理员，有权限操作
+      var options = {
+        maxWidth: 1000,
+        maxHeight: 1000,
+        aspectX: 1,
+        aspectY: 1,
+        quality: 1,
+        allowsEditing: false
+      };
+      ImagePickerManager.launchCamera(options, (response) => {
+        // Same code as in above section!
+        if (response.didCancel) {
+          ///console.log('User cancelled image picker');
+        }
+        else if (response.error) {
+          //console.log('ImagePickerManager Error: ', response.error);
+          ToastAndroid.show('出现未知错误',ToastAndroid.SHORT);
 
-                }
-                else {
-                  const source = {uri:"file://"+response.path, isStatic: true};
-                  var files=[{
-                    uri:source.uri,
-                    name:source.uri.split('/').pop()
-                  }];
-                  this.uploadFun(files)
-                }
-              });
-            }else{
-              Toast.show("没有权限操作","short");
-            }
-          }else{
-            Toast.show("获取身份出错","short");
-          }
-        })
-    }
-    else{
-      if(_this.props.managePermission){
-        var options = {
-          maxWidth: 1000,
-          maxHeight: 1000,
-          aspectX: 1,
-          aspectY: 1,
-          quality: 1,
-          allowsEditing: false
-        };
-        ImagePickerManager.launchCamera(options, (response)  => {
-          // Same code as in above section!
-          if (response.didCancel) {
-            ///console.log('User cancelled image picker');
-          }
-          else if (response.error) {
-            //console.log('ImagePickerManager Error: ', response.error);
-            Toast.show('出现未知错误',"short");
-
-          }
-          else {
-            const source = {uri:"file://"+response.path, isStatic: true};
-            var files=[{
-              uri:source.uri,
-              name:source.uri.split('/').pop()
-            }];
-            this.uploadFun(files)
-          }
-        });
-      }else{
-        Toast.show("没有权限操作","short");
-      }
+        }
+        else {
+          const source = {uri:"file://"+response.path, isStatic: true};
+          var files = [{
+            uri: source.uri,
+            name: source.uri.split('/').pop()
+          }];
+          this.uploadFun(files)
+        }});
+    }else{
+      ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
     }
   }
   uploadFun(files){
     _this.refs.LoaderView.startLoader();
-    api.KB.directUpload(_this.props.kbId==null?0:_this.props.kbId,0,false,files)
-      .then((res)=>{
-        Toast.show(res.Data,"short");
+    api.KB.directUpload(_this.props.kbId == null ? 0 : _this.props.kbId,_this.props.project&&_this.props.project.projectId,0, false, files)
+      .then((res)=> {
+        ToastAndroid.show(res.Data,ToastAndroid.SHORT);
         _this.refs.LoaderView.finishLoader();
-        if(res.Type==1){
-          _this.refs.kbList.getLists();
+        if (res.Type == 1) {
+          if(_this.props.project){
+            _this.refs.kbList.getProjectKbLists()
+          }else{
+            _this.refs.kbList.getLists();
+          }
         }
-        else{
-          Toast.show(res.Data,"short");
+        else {
+          ToastAndroid.show(res.Data,ToastAndroid.SHORT);
         }
-      }).catch((err)=>{Toast.show('出现未知错误',"short");})
+      }).catch((err)=> {
+        ToastAndroid.show('出现未知错误',ToastAndroid.SHORT);
+      })
   }
     render() {
         return (
@@ -370,39 +284,44 @@ export default class KbMain extends React.Component{
       _this=this;
     };
     kbMenu(index){
-        switch(index){
-            case 0:
-              this.props.nav.push({
-                id:'SearchKb',
-                kbId:this.props.kbId
-              });
-            break;
-            case 1:
-                this.refs.kbMenuView.open();
-            break
+      switch (index) {
+        case 0:
+          this.props.nav.push({
+            id: 'SearchKb',
+            kbId: this.props.kbId,
+            projectId:this.props.project&&this.props.project.projectId
+          });
+          break;
+        case 1:
+          this.refs.kbMenuView.open();
+          break
 
-        }
+      }
     }
-  creatKBFile(value){
+  creatKBFile(value) {
     //确认
-    value=value.trim();
-    if(value.length==0){
-      Toast.show("输入项中不能有空格！","short");
+    value = value.trim();
+    if (value.length == 0) {
+      ToastAndroid.show("输入项不能为空",ToastAndroid.SHORT);
       return;
     }
     //防止用户重复点击
-    this.setState({creatFlag:true});
-    api.KB.createKb(value,this.props.kbId)
-    .then((res)=>{
-        this.setState({creatFlag:false});
-        if(res.Type==1){
+    this.setState({creatFlag: true});
+    api.KB.createKb(value, this.props.kbId,this.props.project&&this.props.project.projectId)
+      .then((res)=> {
+        this.setState({creatFlag: false});
+        if (res.Type == 1) {
           _this.setState({
             promptVisible: false
           });
-          this.refs.kbList.getLists();
+          if(this.props.project){
+            this.refs.kbList.getProjectKbLists()
+          }else{
+            this.refs.kbList.getLists();
+          }
         }
-        else{
-          Toast.show(res.Data,"short");
+        else {
+          ToastAndroid.show(res.Data,ToastAndroid.SHORT);
         }
 
       })
@@ -413,53 +332,42 @@ export default class KbMain extends React.Component{
     }
     render() {
       _this=this;
-        const titleConfig = {
-            title: '文库',
-            tintColor:'white'
-        };
         return (
             <View style={{flex:1}}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
-                  title={this.props.kbId==null?titleConfig:<Text/>}
+                  style={styles.NavSty}
                   leftButton={
-                     this.props.kbId!=null?<View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                        </TouchableOpacity>
-                      <Text numberOfLines={1} style={styles.navLeftText}>{this.props.kbName}</Text>
-                     </View>:<View/>
+                    this.props.project==null?<NavLeftView nav={this.props.nav} leftTitle={this.props.kbId != null?this.props.kbName:'文库'}/>:
+                      <NavLeftView nav={this.props.nav} textSty={styles.navLeftText} leftTitle={this.props.project.projectName}/>
                    }
                   rightButton={
-                  this.state.fetchSuccess?<View style={{flexDirection: 'row',alignItems: 'center',marginRight:15}}>
-                    <TouchableOpacity style={[styles.touIcon,{marginRight:15}]} onPress={this.kbMenu.bind(this,0)}>
+                  this.state.fetchSuccess?<View style={{flexDirection: 'row',alignItems: 'center',marginRight:10}}>
+                    <TouchableOpacity style={styles.navLeftIcon} onPress={this.kbMenu.bind(this,0)}>
                       <Icons
-                        name='android-search'
+                        name='md-search'
                         size={25}
-                        onPress={this.kbMenu.bind(this,0)}
                         color='white'
                         />
                         </TouchableOpacity>
-                       <TouchableOpacity style={[styles.touIcon,{marginRight:-5}]} onPress={this.kbMenu.bind(this,1)}>
+                       <TouchableOpacity style={styles.navLeftIcon} onPress={this.kbMenu.bind(this,1)}>
                           <Icons
-                          name='android-add'
+                          name='md-add'
                           size={25}
-                          onPress={this.kbMenu.bind(this,1)}
                           color='white'
                           />
                        </TouchableOpacity>
                     </View>:<Text/>
                    }/>
-                 <KbList ref="kbList" nav={this.props.nav} kbId={this.props.kbId} isSuccess={this.havaKbData.bind(this)}/>
+              <KbList ref="kbList"
+                      project={this.props.project}
+                      nav={this.props.nav}
+                      kbId={this.props.kbId}
+                      isSuccess={this.havaKbData.bind(this)}/>
                 <LoaderView ref="LoaderView" nav={this.props.nav}/>
                 <KbMenuView ref="kbMenuView" nav={this.props.nav}/>
               <Prompt
                 title="新建文件夹"
+                ref="prompt"
                 visible={_this.state.promptVisible}
                 submitText="确定"
                 cancelText="取消"

@@ -2,7 +2,7 @@
 
 import {
   setErrConsumeFunction
-} from './utils/Http'
+  } from './utils/Http'
 
 import {
   userLogin,
@@ -18,8 +18,9 @@ import {
   unregister,
   getMySubordinate,
   checkApplyCode,
-  findPassword
-} from './UserApis'
+  findPassword,
+  getCurrUserName
+  } from './UserApis'
 
 import { getCurrentUser,getCurrentUserId } from './utils/CurrentUser'
 
@@ -37,8 +38,10 @@ import {
   toggleLikeState,
   removeActivity,
   getValidAnnouncement,
-  getActivityScopes
-} from './ActivityApis'
+  getActivityScopes,
+  getNotices,
+  clearUnread
+  } from './ActivityApis'
 
 import {
   getCompanyList,
@@ -46,7 +49,7 @@ import {
   joinCompany,
   cancelApply,
   enterCompany
-} from './CompanyApis'
+  } from './CompanyApis'
 
 import {
   getTasterAndRules,
@@ -57,7 +60,7 @@ import {
   getReportListByUser,
   receivedReportList,
   checkSubmitStatus
-} from './ReportApis'
+  } from './ReportApis'
 
 import {
   getUserList,
@@ -65,7 +68,7 @@ import {
   getUnitsOfDep,
   getUserListGroupByPrefix,
   groupImportUserInfo
-} from './OrganizationalStructureApis'
+  } from './OrganizationalStructureApis'
 import {
   getKBFileList,
   createKb,
@@ -90,8 +93,46 @@ import {
   downloadAttachment,
   toggleArticleFavoriteState,
   checkKBManager
-} from './KBApis'
+  } from './KBApis'
 import { getAttendanceRule,attendance,checkIn,myAttendance } from './AttendanceApis.js'
+import {
+  myTasks,
+  unreadTaskCount,
+  myTaskFilter,
+  getUnderlingAndDepartment,
+  getSearchTasks,
+  getExtendedProperty,
+  createTask,
+  taskDetail,
+  getTaskComments,
+  getTaskLogs,
+  restartTask,
+  finishTask,
+  quitTask,
+  recycleTask,
+  editTask
+  } from './TaskApis'
+import {
+  myProject,
+  searchProject,
+  getCompanyTemplates,
+  createProject,
+  getProjectKb,
+  projectDetail,
+  getProjectActivities,
+  editProject,
+  editProjectAnnouncement,
+  getTaskStage,
+  getStageTasks,
+  sortTask,
+  editStage,
+  createStage,
+  deleteStage,
+  projectSetting,
+  finishProject,
+  cancelFinishProject,
+  recycleProject
+  } from './ProjectApis'
 
 /**
  * Even though the codes bellow act like a fool,
@@ -114,7 +155,8 @@ export default {
     unregister: unregister,
     getMySubordinate: getMySubordinate,
     checkApplyCode:checkApplyCode,
-    findPassword:findPassword
+    findPassword:findPassword,
+    getCurrUserName:getCurrUserName
   },
   OS: {
     getUserList: getUserList,
@@ -167,7 +209,9 @@ export default {
     getVoteOrReceiptState: getVoteOrReceiptState,
     toggleLikeState: toggleLikeState,
     removeActivity: removeActivity,
-    getValidAnnouncement:getValidAnnouncement
+    getValidAnnouncement:getValidAnnouncement,
+    getNotices:getNotices,
+    clearUnread:clearUnread
   },
   KB:{
     getKBFileList:getKBFileList,
@@ -199,6 +243,44 @@ export default {
     attendance:attendance,
     checkIn:checkIn,
     myAttendance:myAttendance
+  },
+  Task:{
+    myTasks:myTasks,
+    unreadTaskCount:unreadTaskCount,
+    myTaskFilter:myTaskFilter,
+    getUnderlingAndDepartment:getUnderlingAndDepartment,
+    getSearchTasks:getSearchTasks,
+    getExtendedProperty:getExtendedProperty,
+    createTask:createTask,
+    taskDetail:taskDetail,
+    getTaskComments:getTaskComments,
+    getTaskLogs:getTaskLogs,
+    restartTask:restartTask,
+    finishTask:finishTask,
+    quitTask:quitTask,
+    recycleTask:recycleTask,
+    editTask:editTask
+  },
+  Project:{
+    myProject:myProject,
+    searchProject:searchProject,
+    getCompanyTemplates:getCompanyTemplates,
+    createProject:createProject,
+    getProjectKb:getProjectKb,
+    projectDetail:projectDetail,
+    getProjectActivities:getProjectActivities,
+    editProject:editProject,
+    editProjectAnnouncement:editProjectAnnouncement,
+    getTaskStage:getTaskStage,
+    getStageTasks:getStageTasks,
+    sortTask:sortTask,
+    editStage:editStage,
+    createStage:createStage,
+    deleteStage:deleteStage,
+    projectSetting:projectSetting,
+    finishProject:finishProject,
+    cancelFinishProject:cancelFinishProject,
+    recycleProject:recycleProject
   }
 
 }

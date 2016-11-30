@@ -1,28 +1,26 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+ Image,
   Text,
   StyleSheet,
   View,
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Component,
   TextInput,
   ScrollView,
   Linking,
-  ProgressBarAndroid,
+  ActivityIndicator,
   WebView,
-  AsyncStorage
-  } from 'react-native';
+  AsyncStorage,
+  Alert,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import _ from 'lodash'
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var {height, widths} = Dimensions.get('window');
@@ -36,7 +34,6 @@ var iconColor;
 var resData=[];
 var str="";
 import Prompt from 'react-native-prompt';
-import Popup from 'react-native-popup';
 import Comment from '../common/Comment.js';
 import CommentInput from '../common/CommentInput.js'
 var BusyIndicator = require('react-native-busy-indicator');
@@ -51,7 +48,7 @@ const CANCEL_INDEX = 0;
 const DESTRUCTIVE_INDEX = 1;
 import RNFS from 'react-native-fs';
 import WebViewBridge from 'react-native-webview-bridge';
-import Toast from  '@remobile/react-native-toast'
+
 
 class KbMenuView extends Component {
   constructor(props) {
@@ -72,17 +69,14 @@ class KbMenuView extends Component {
         break;
       case 1:
         //删除
-        _this.popup.confirm({
-          title: '刪除',
-          content: ['是否删除该文章？'],
-          cancel: {
-            text: '取消'
-          },
-          ok: {
-            text: '确定',
-            callback:_this.removeFiles.bind(_this)
-          }
-        });
+          Alert.alert(
+            '刪除',
+            '是否删除该文章？',
+            [
+              {text: '取消'},
+              {text: '确定', onPress: _this.removeFiles.bind(_this)}
+            ]
+          );
         break;
     }
   }
@@ -228,7 +222,7 @@ class FavorView extends Component {
         obj.Name=currUser.Name;
         var falg=false;
         if(resData.Type==1){
-          if(resData.Data=='收藏成功!'){
+          if(resData.Data=='收藏成功'){
             this.state.FavorUsers.push(obj);
             falg=true;
             zanflag=true
@@ -241,7 +235,7 @@ class FavorView extends Component {
           this.setState({FavorUsers:this.state.FavorUsers});
           this.props.Favorcallback(this.state.FavorUsers.length,falg);
         }else{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
       });
 
@@ -350,6 +344,7 @@ export default class KbArticleDetail extends React.Component{
       .then((res)=>{
         loaderHandler.hideLoader();
         this.setState({isFetch:true});
+        this.setState({fetchSuccess:true});
         if(res.Type==1){
           str=res.Data.FileName;
           if (res.Data && res.Data.FavorUsers.length > 0) {
@@ -372,7 +367,7 @@ export default class KbArticleDetail extends React.Component{
           AsyncStorage.getItem(this.props.kbId.toString())
             .then((resHeight)=>{
               //读取本地缓存数据
-              if(resHeight!="0"){
+              if(resHeight!="0"&&resHeight!=""){
                 this.setState({
                   height:parseInt(resHeight)
                 });
@@ -382,7 +377,7 @@ export default class KbArticleDetail extends React.Component{
         }
         else{
           //获取详情失败
-
+          this.setState({fetchSuccess:false});
         }
       });
     if(this.refs.webviewbridge){
@@ -392,7 +387,7 @@ export default class KbArticleDetail extends React.Component{
 
   kbMenu(){
     if(!this.props.managePermission){
-      Toast.show("没有权限操作","short");
+      ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
     }
     else{
       this.refs.kbMenuView.open();
@@ -406,10 +401,10 @@ export default class KbArticleDetail extends React.Component{
           if(res.Type==1){
             this.props.removeFile(_this.state.resData.Id);
             this.props.nav.pop();
-            Toast.show(res.Data,"short");
+            ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
           }
           else{
-            Toast.show(res.Data,"short");
+            ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
           }
         });
     }
@@ -418,7 +413,7 @@ export default class KbArticleDetail extends React.Component{
     //重命名
     value=value.trim();
     if(value.length==0){
-      Toast.show('输入项中不能有空格',"short");
+      ToastAndroid.show('输入项中不能有空格',ToastAndroid.SHORT);
       return;
     }
     this.setState({creatFlag:true});
@@ -432,7 +427,7 @@ export default class KbArticleDetail extends React.Component{
             this.props.nav.pop();
           }
           else{
-            Toast.show(res.Data,"short");
+            ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
           }
         });
     }
@@ -520,35 +515,26 @@ export default class KbArticleDetail extends React.Component{
     return (
       <View style={{flex:1,backgroundColor:'#EFF0F4'}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                      <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                        </TouchableOpacity>
-                     </View>
-
+              <NavLeftView nav={this.props.nav} leftTitle=""/>
                    }
           rightButton={
                   <View style={{flexDirection: 'row',alignItems: 'center'}}>
                    {
                         this.state.startLoad?<View style={styles.navLoadIcon}>
-                          <ProgressBarAndroid styleAttr='Inverse' color='white' />
+                          <ActivityIndicator animating={true} color='white'/>
                         </View>:null
                    }
-                    <TouchableOpacity style={[styles.touIcon,{marginRight:10}]} onPress={this.kbMenu.bind(this)}>
+                    {this.state.fetchSuccess?<TouchableOpacity style={[styles.touIcon,{paddingRight:10}]} onPress={this.kbMenu.bind(this)}>
                       <Icons
-                        name='android-more-vertical'
+                        name='md-more'
                         size={25}
                         onPress={this.kbMenu.bind(this)}
                         color='white'
                         />
-                      </TouchableOpacity>
+                      </TouchableOpacity>:null
+                      }
                     </View>
                    } />
         {this.state.isFetch?<ScrollView ref="scroll" keyboardShouldPersistTaps={true}  keyboardDismissMode ='on-drag'>
@@ -646,11 +632,10 @@ export default class KbArticleDetail extends React.Component{
           onPress={this._handlePress.bind(this)}
           />
         {
-          <View>
+          this.state.fetchSuccess?<View>
             <CommentInput ref="commentInput" styleType={1} newcommentItem={this.newcomItem.bind(this)} commentConfig={this.state.commentConfig}/>
-          </View>
+          </View>:null
         }
-        <Popup ref={(popup) => { this.popup = popup }}/>
         <Prompt
           title="重命名"
           defaultValue={str}

@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+ Image,
   Text,
   Alert,
   TextInput,
@@ -14,12 +10,14 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import ActivitiesList from '../activities/ActivitiesList.js'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
 
 export default class MyFavorite extends React.Component {
@@ -34,18 +32,9 @@ export default class MyFavorite extends React.Component {
       return (
         <View style={styles.containersw}>
           <NavigationBar
-            style={{height: 55,backgroundColor:'#175898'}}
+            style={styles.NavSty}
             leftButton={
-                    <View style={styles.navLeftBtn}>
-                          <Icons
-                            name="android-arrow-back"
-                            size={28}
-                            style={{marginLeft:20,paddingRight:20}}
-                            color="white"
-                            onPress={() => {this.props.nav.pop()}}
-                          />
-                        <Text style={styles.rightNavText}>我赞过的</Text>
-                       </View>
+            <NavLeftView nav={this.props.nav} leftTitle="我赞过的"/>
                     }/>
           <ActivitiesList  nav={this.props.nav} actType={128}/>
         </View>

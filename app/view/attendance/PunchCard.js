@@ -1,35 +1,31 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+ Image,
   Text,
   StyleSheet,
   View,
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  Component,
   ScrollView,
   Alert,
   AppState,
-  ProgressBarAndroid
+  ProgressBarAndroid,
+  ActivityIndicator,
+  NetInfo,
+  Dimensions
   } from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
-var {height, widths} = Dimensions.get('window');
+var {height, width} = Dimensions.get('window');
 import Prompt from 'react-native-prompt';
 import api from "../../network/ApiHelper";
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
-import Toast from  '@remobile/react-native-toast'
-import AMapLocation from 'react-native-amap-location';
-import wifi from 'react-native-android-wifi';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import colorManager from '../common/styles/manager';
 var wifiArray="";
@@ -40,9 +36,10 @@ import {formatter} from '../../tools/DateHelper'
 var mac="";
 var name="";
 var i=0;
-import Popup from 'react-native-popup';
 var Bounceable = require("react-native-bounceable");
 import BaiduLocation from 'react-native-bdmap';
+var WifiManager = require('react-native-wifi-manager');
+import wifi from 'react-native-android-wifi';
 
 export default class PunchCard extends React.Component{
   constructor(props){
@@ -61,15 +58,32 @@ export default class PunchCard extends React.Component{
       distance:0,
       isNeedWifi:false,
       serviceStart:false,
-      currentAppState: AppState.currentState
+      errorRange:100,
+      currentAppState: AppState.currentState,
+      ishaveRule:true
     };
     this._handleAppStateChange=this._handleAppStateChange.bind(this);
+
   };
   componentDidMount() {
     i=0;
     locationData=null;
     this.getData();
+    //WifiManager.list(
+    //  (wifiArray) => {
+    //    debugger;
+    //  },
+    //  (msg) => {
+    //    console.log(msg);
+    //  }
+    //);
     AppState.addEventListener('change', this._handleAppStateChange);
+  }
+   refreshPosition(){
+    BaiduLocation.stopObserving();
+    this.setState({serviceStart: false,haveData: false, isFetch: false});
+    i = 0;
+    this.getData();
   }
   updateData(mac,name,longitude,latitude){
     api.Attendance.attendance(mac,name,longitude,latitude)
@@ -97,9 +111,9 @@ export default class PunchCard extends React.Component{
         if(this.state.resData&&this.state.resData.length!=0&&this.state.resData.CanCheckIn&&this.state.resData.CheckInRange){
           let distance=this.getError(position.latitude,position.longitude,this.state.resData.Alatitude,this.state.resData.Alongitude);
           //判断当前经纬度与规则中经纬度的距离，相差100m的时候获取数据，刷新页面。
-          if(distance>0.1){
+          if(distance>this.state.resData.ErrorRange/1000){
             if(this.state.isNeedWifi){
-              wifi.loadWifiList((wifiStringList) => {
+              WifiManager.list((wifiStringList) => {
                   var oldWifiArray = JSON.parse(wifiStringList);
                   mac="";
                   name="";
@@ -113,7 +127,7 @@ export default class PunchCard extends React.Component{
                 },
                 (error) => {
                   loaderHandler.hideLoader();
-                  Toast.show("获取wifi列表失败","short");
+                  ToastAndroid.show("获取wifi列表失败",ToastAndroid.SHORT);
                 }
               );
             }else{
@@ -126,7 +140,7 @@ export default class PunchCard extends React.Component{
         callback(position);
       },
       (error) =>{
-        Toast.show("定位失败。错误代码"+error.code,"short");
+        ToastAndroid.show("定位失败。错误代码"+error.code,ToastAndroid.SHORT);
         this.setState({serviceStart:true});
         BaiduLocation.stopObserving();//停止定位服务
         /**
@@ -134,7 +148,7 @@ export default class PunchCard extends React.Component{
          * 不需要，不能打卡
          */
         if(this.state.isNeedWifi){
-          wifi.loadWifiList((wifiStringList) => {
+          WifiManager.list((wifiStringList) => {
               var oldWifiArray = JSON.parse(wifiStringList);
               mac="";
               name="";
@@ -147,7 +161,7 @@ export default class PunchCard extends React.Component{
               this.updateData(mac,name,0,0);
             },
             (error) => {
-              Toast.show("获取wifi列表失败","short");
+              ToastAndroid.show("获取wifi列表失败",ToastAndroid.SHORT);
             }
           );
         }else{
@@ -217,7 +231,7 @@ export default class PunchCard extends React.Component{
           this.setState({isNeedWifi:res.Data});
           if(res.Data){
             //需要wifi
-            wifi.loadWifiList((wifiStringList) => {
+            WifiManager.list((wifiStringList) => {
                 var oldWifiArray = JSON.parse(wifiStringList);
                 mac="";
                 name="";
@@ -230,9 +244,9 @@ export default class PunchCard extends React.Component{
                 this.getDatas(this.getLocationData.bind(this));
               },
               (error) => {
-                Toast.show("获取wifi列表失败","short");
+                ToastAndroid.show("获取wifi列表失败",ToastAndroid.SHORT);
               }
-            );
+            )
           }
           else{
             mac="";
@@ -240,7 +254,12 @@ export default class PunchCard extends React.Component{
             this.getDatas(this.getLocationData.bind(this));
           }
         }else{
-          Toast.show(res.Data,"short");
+          if(res.Data=="没有考勤规则"){
+            this.setState({isFetch:true,serviceStart:true,haveData:false,ishaveRule:false});
+          }else{
+            this.setState({isFetch:true,serviceStart:true,haveData:false,errMsg:res.Data});
+          }
+          ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
         }
       });
 
@@ -262,14 +281,14 @@ export default class PunchCard extends React.Component{
                 api.Attendance.checkIn(mac,locationData.longitude,locationData.latitude)
                   .then((res)=>{
                     if(res.Type==1){
-                      Toast.show(toastMsg,"short");
+                      ToastAndroid.show(toastMsg,ToastAndroid.SHORT);
                       this.props.isPunchOk(true);
                       i=0;
                       this.getData();
                     }
                     else{
                       loaderHandler.hideLoader();
-                      Toast.show(res.Data,"short");
+                      ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
                     }
                   })
               }},
@@ -281,13 +300,13 @@ export default class PunchCard extends React.Component{
           api.Attendance.checkIn(mac,locationData.longitude,locationData.latitude)
           .then((res)=>{
               if(res.Type==1){
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
                 this.props.isPunchOk(true);
                 i=0;
                 this.getData();
               }else{
                 loaderHandler.hideLoader();
-                Toast.show(res.Data,"short");
+                ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
               }
             })
       }}
@@ -318,7 +337,7 @@ export default class PunchCard extends React.Component{
         {
           !this.state.serviceStart?<View style={[styles.noData,{flex:1}]}>
             <View style={styles.noData}>
-              <ProgressBarAndroid styleAttr='Inverse' color='#A5A2A2' />
+            <ActivityIndicator animating={true} color='#A5A2A2' size='large'/>
               <Text style={{fontSize:14}}>正在获取当前位置</Text>
             </View>
           </View>:null
@@ -436,14 +455,32 @@ export default class PunchCard extends React.Component{
                       <View style={styles.cardText}><Text textAlign="center" style={[styles.PuCardDateTexts,{color:'#000000'}]}> 已进入打卡范围：{this.state.resData.Address}</Text></View>
                     </View>
                   </View>:<View style={styles.PuCardCont}>
-                    <View style={[styles.PuCardBtn,{backgroundColor:'gray'}]}><Text style={[styles.PuCardBtnText,{fontSize:16}]}>未在打卡范围</Text></View>
+                    <View style={[styles.PuCardBtn,{backgroundColor:'gray'}]}><Text style={[styles.PuCardBtnText,{fontSize:16}]}>未在打卡范围</Text>
+                     
+                    </View>
+                    <TouchableOpacity onPress={this.refreshPosition.bind(this)}
+                                        activeOpacity={0.5}
+                                        style={{height:50,width: width * 0.35}}>
+                        <View style={styles.PuCardOkView}>
+                          <View style={styles.repositionView}>
+                            <Icons
+                              name='md-refresh'
+                              size={16}
+                              color='blue'
+                            />
+                            <Text textAlign="center" style={styles.repositionText}>
+                              重新定位
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
                   </View>:null
                 }
 
 
               </View>
             </ScrollView>
-          </View>:<View style={[styles.noData,{flex:1}]}>
+          </View>:this.state.ishaveRule?<View style={[styles.noData,{flex:1}]}>
             <View style={styles.noData}>
               <Icon
                 name="exclamation-circle"
@@ -452,11 +489,21 @@ export default class PunchCard extends React.Component{
                 />
               <Text style={{fontSize:14}}>{this.state.errMsg}</Text>
             </View>
+          </View>:<View style={[styles.noData,{flex:1}]}>
+            <View style={styles.noRuleData}>
+              <Icon
+                name="warning"
+                size={50}
+                color="#FF9800"
+                /><View style={{marginLeft:10}}>
+              <Text style={{fontSize:14,justifyContent:'flex-end',width: Dimensions.get('window').width*0.6}}>还未设置考勤规则，请通知管理员在web端设定考勤规则</Text>
+            </View>
+
+            </View>
           </View>
         }
 
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
-        <Popup ref={(popup) => { this.popup = popup }}/>
       </View>
     );
   }

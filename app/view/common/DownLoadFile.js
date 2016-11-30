@@ -1,16 +1,16 @@
 'use strict';
-
-import React, {
-  ToastAndroid,
+import React, {Component} from 'react'
+import {
+ ToastAndroid,
   Linking
-  } from 'react-native';
+} from 'react-native';
+
 
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
-import Toast from  '@remobile/react-native-toast'
-var httpUrl='http://i-test.huobanyun.cn';
-//var httpUrl = 'http://i.huobanyun.cn';
-//var httpUrl='http://192.168.0.155';
+
+import AppConfig from '../App_configs'
+var httpUrl=AppConfig.DOWNLOAD;
 import RNFS from 'react-native-fs';
 
 export function downLoadFiles(fileName,fileUrl){
@@ -38,14 +38,14 @@ export function downLoadFiles(fileName,fileUrl){
           if(res.statusCode==200){
             Linking.canOpenURL("file://"+option.toFile).then(supported => {
               if (!supported) {
-                Toast.show('没有对应的应用程序!',"short");
+                ToastAndroid.show('没有对应的应用程序!',ToastAndroid.SHORT);
               } else {
                 return Linking.openURL("file://"+option.toFile);
               }
-            }).catch(err =>  Toast.show('打开失败!',"short"));
+            }).catch(err =>  ToastAndroid.show('打开失败!',ToastAndroid.SHORT));
           }
           else{
-            Toast.show("下载失败，请重试","short");
+            ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
           }
         })
     }).catch((err)=>{
@@ -60,19 +60,19 @@ export function downLoadFiles(fileName,fileUrl){
                 if(res.statusCode==200){
                   Linking.canOpenURL("file://"+option.toFile).then(supported => {
                     if (!supported) {
-                      Toast.show('没有对应的应用程序!',"short");
+                      ToastAndroid.show('没有对应的应用程序!',ToastAndroid.SHORT);
                     } else {
                       return Linking.openURL("file://"+option.toFile);
                     }
-                  }).catch(err =>  Toast.show('打开失败!',"short"));
+                  }).catch(err =>  ToastAndroid.show('打开失败!',ToastAndroid.SHORT));
                 }
                 else{
-                  Toast.show("下载失败，请重试","short");
+                  ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
                 }
               })
           }
           else{
-            Toast.show("目录创建失败，无法下载","short");
+            ToastAndroid.show("目录创建失败，无法下载",ToastAndroid.SHORT);
           }
         });
     }

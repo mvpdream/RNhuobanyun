@@ -1,6 +1,5 @@
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -10,15 +9,15 @@ import React, {
   ListView,
   TextInput,
   ScrollView,
-  Component,
   Alert,
   Linking,
   InteractionManager,
   DeviceEventEmitter,
   BackAndroid,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import apiUrl from '../../network/utils/Http.js'
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -46,14 +45,13 @@ var commentIndex=-1;
 import { Bubbles, DoubleBounce, Bars, Pulse } from 'react-native-loader';
 import {formatter} from '../../tools/DateHelper'
 var HTMLView = require('react-native-htmlview');
-import Popup from 'react-native-popup';
-import Toast from  '@remobile/react-native-toast'
-import AndroidKeyboardAdjust from 'react-native-android-keyboard-adjust';
+import kstyles from '../kb/style'
 var dismissKeyboard = require('dismissKeyboard');
 import ZanNum from '../common/ZanNumView.js'
 import ComNum from '../common/ComNumView.js'
 import FavorView from '../common/FavorUsersView.js'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 
 //动态投票选择项cell
 class Cell extends Component {
@@ -67,27 +65,30 @@ class Cell extends Component {
 
   };
   checkItem(){
-    this.setState({checkState: !this.state.checkState,isNext:!this.state.isNext});
-    if(this.state.checkState){
+    let checkState = !this.state.checkState;
+    let isNext = !this.state.isNext;
+    this.setState({checkState: checkState, isNext: isNext});
+    if (checkState) {
       selectedItem.push(this.props.optionTemp);
     }
-    else{
-      var _index=selectedItem.indexOf(this.props.optionTemp);
-      if(_index>-1){
-        selectedItem.splice(_index,1)
+    else {
+      var _index = selectedItem.indexOf(this.props.optionTemp);
+      if (_index > -1) {
+        selectedItem.splice(_index, 1)
       }
     }
-    if(selectedItem.length>radioNum){
+    if (selectedItem.length > radioNum) {
       Alert.alert(
         '警告',
         `做多可以选择：${radioNum}项`,
-        [{text:'确定',onPress:()=>{
-          this.setState({checkState: !this.state.checkState});
-          var _index=selectedItem.indexOf(this.props.optionTemp);
-          if(_index>-1){
-            selectedItem.splice(_index,1)
+        [{
+          text: '确定', onPress: ()=> {
+            this.setState({checkState: !this.state.checkState});
+            var _index = selectedItem.indexOf(this.props.optionTemp);
+            if (_index > -1) {
+              selectedItem.splice(_index, 1)
+            }
           }
-        }
         }]
       );
     }
@@ -149,14 +150,17 @@ export default class ActivitiesDetail extends React.Component {
       isfavored:false,
       isDelete:false,
       ishaveAct:true,
-      keyboardSpace: 0
+      keyboardSpace: 0,
+      isAnnouncement:false
     };
     this._onBackAndroid=this.onBackAndroid.bind(this);
   };
   componentDidMount() {
     radioNum=1;
     selectedItem=[];
-    this.getActDetail();
+   InteractionManager.runAfterInteractions(() => {
+      this.getActDetail();
+    });
 
   };
   componentWillUnmount() {
@@ -253,6 +257,17 @@ export default class ActivitiesDetail extends React.Component {
           if (resData.Data&&resData.Data['Comments']&& resData.Data['Comments'].length) {
             this.setState({commentNum: resData.Data['Comments'].length})
           }
+          let announcementObj=[];
+          announcementObj=resData.Data&&resData.Data.Items!=""&&resData.Data.Items.filter((tempItem)=>{
+              if(tempItem&&tempItem.length!=0&&tempItem.hasOwnProperty("TenantType")&&tempItem.TenantType=="Announcement"){
+                return tempItem;
+              }
+            });
+          if(announcementObj.length!=0&&announcementObj){
+            this.setState({isAnnouncement:true});
+          }else{
+            this.setState({isAnnouncement:false});
+          }
           this.setState({
             isloadData: false,
             activityData: resData.Data,
@@ -324,11 +339,11 @@ export default class ActivitiesDetail extends React.Component {
     api.Activity.voteFor(selectedVoteIds)
     .then((resData)=>{
         if(resData.Type==1){
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
           this.getActDetail();
         }
         else{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
       });
     }
@@ -340,11 +355,11 @@ export default class ActivitiesDetail extends React.Component {
     api.Activity.voteFor(Id)
     .then((resData)=>{
         if(resData.Type==1){
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
           this.setState({isReceipt:true,recepteCont:Content});
           this.props.getIsReceipt(true);
         }else{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
       })
   }
@@ -425,9 +440,47 @@ export default class ActivitiesDetail extends React.Component {
       '确定删除该动态？',
       [
         {text: '取消'},
-        {text: '确定', onPress:() => {
-          this.props.deleteactivity(this.props.activityId,this.props.type==null?0:this.props.type);
-        }}
+        {
+          text: '确定', onPress: () => {
+            if(this.props.project!=null){
+               loaderHandler.showLoader("加载中...");
+              api.Activity.removeActivity(this.state.activityData.Id)
+                .then((res)=> {
+                  if (res.Type == 1) {
+                    setTimeout(()=>{
+                      if(this.props.type&&this.props.type!="notice"){
+                      this.props.reloadList();
+                      }
+                      ToastAndroid.show("删除成功",ToastAndroid.SHORT);
+                      loaderHandler.hideLoader();
+                      this.props.nav.pop();
+                    },1500);
+                  }else{
+                    loaderHandler.hideLoader();
+                    ToastAndroid.show("删除失败,请重试",ToastAndroid.SHORT);
+                  }
+                })
+
+            }else if(this.props.type&&this.props.type=="notice"){
+               loaderHandler.showLoader("加载中...");
+              api.Activity.removeActivity(this.state.activityData.Id)
+                .then((res)=> {
+                  if (res.Type == 1) {
+                      ToastAndroid.show("删除成功",ToastAndroid.SHORT);
+                      loaderHandler.hideLoader();
+                      this.props.nav.pop();
+                  }else{
+                    loaderHandler.hideLoader();
+                    ToastAndroid.show("删除失败,请重试",ToastAndroid.SHORT);
+                  }
+                })
+            }
+            else{
+              this.props.deleteactivity(this.props.activityId, this.props.type == null ? 0 : this.props.type);
+            }
+
+        }
+        }
       ]
     )
 
@@ -440,22 +493,13 @@ export default class ActivitiesDetail extends React.Component {
         }
       });
     var body="<p>"+item.Body+"</p>";
+    var scopes=item&&item.Scopes&&item.Scopes.length>20?item.Scopes.substring(0,20)+'...':item.Scopes;
     return (
     this.state.ishaveAct?<View style={{flex:1,backgroundColor:'white'}}>
        <NavigationBar
-         style={{height: 55,backgroundColor:'#175898'}}
+         style={styles.NavSty}
          leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={this.backList.bind(this)}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>动态详情</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} backFun={this.backList.bind(this)} leftTitle="动态详情"/>
                    }
          rightButton={
                   <View style={{flexDirection: 'row',alignItems: 'center'}}>
@@ -483,13 +527,18 @@ export default class ActivitiesDetail extends React.Component {
                />
              <View style={styles.itemnamesope}>
                <Text style={styles.itemNamesope}>{item.UserCreated&&item.UserCreated.Name}</Text>
-               {
-                 item.Scopes==null?null:
+               <View style={{flexDirection: 'row',alignItems:'center'}}>
                    <Text onPress={this.ActivityScopesDetail.bind(this)}
-                         style={[styles.nomText,{color:'#64656B',marginLeft:3}]}>--{item.Scopes==""?"我自己":item.Scopes}  {item['CreatedTime']}
+                   numberOfLines={1}
+                  style={[styles.nomText,{color:'#64656B',marginLeft:3,marginRight:5,width:Dimensions.get('window').width-50}]}>
+                  --{item.Scopes==""?"我自己":scopes}   {item['CreatedTime']}
                    </Text>
+               {
+                 this.state.isAnnouncement?<View style={styles.AnnouncementView}>
+                 <Text style={[styles.scopeText,{color:'white'}]}>公告</Text>
+                 </View>:null
                }
-
+               </View>
              </View>
            </View>
            {
@@ -513,7 +562,7 @@ export default class ActivitiesDetail extends React.Component {
              {
                item.Images && item.Images.map((imageitem, index)=> {
                  return (
-                   <TouchableOpacity key={index} onPress={this.openImgs.bind(this,index)}>
+                   <TouchableOpacity style={{width: 85, height: 100}} key={index} onPress={this.openImgs.bind(this,index)}>
                      <View  style={{padding:10}}>
                        <Image
                          source={{uri:imageitem.Url}}
@@ -532,7 +581,7 @@ export default class ActivitiesDetail extends React.Component {
                  var str1=filesitem.Name.substring(0,ipos);
                  var str2=filesitem.Name.substring(ipos,filesitem.Name.length);
                  return (
-                   <TouchableOpacity  style={{padding:5}} key={index} onPress={this.downLoadfiles.bind(this,filesitem.Name,filesitem.DownloadUrl)}>
+                   <TouchableOpacity  style={{padding:5,height:40}} key={index} onPress={this.downLoadfiles.bind(this,filesitem.Name,filesitem.DownloadUrl)}>
                      <View style={{flexDirection: 'row',padding:5}}>
                        <Icon
                          name="file"
@@ -561,7 +610,7 @@ export default class ActivitiesDetail extends React.Component {
                              <View style={{padding:6}}>
                                <Text style={styles.nomText}>{item.Items[0].Title}</Text>
                              </View>
-                             <View style={{padding:5, justifyContent: 'space-between',alignItems: 'center',flexDirection: 'row'}}>
+                             <View style={{padding:5, flexWrap: 'wrap',justifyContent: 'space-between',alignItems: 'center',flexDirection: 'row'}}>
                                <Text style={[styles.nomText,{color:'#999'}]}>最多选择{item.Items[0].MaxSelect}项</Text>
                                <Text style={[styles.nomText,{color:'#999',marginLeft:15}]}>截止时间：{item.Items[0].ExpiredTime}</Text>
                              </View>
@@ -613,14 +662,14 @@ export default class ActivitiesDetail extends React.Component {
                                <Text style={[styles.nomText,{color:'#999',marginLeft:15}]}>截止时间：{item.Items[0].ExpiredTime}</Text>
                              </View>
                            </View>
-                           <View style={{marginLeft:23.5}}>
+                           <View>
                              <ListView
                                dataSource={this.state.optionData}
                                renderRow={this.optionItem.bind(this)}
                                />
                            </View>
                            <View style={styles.submitVoteViews}>
-                             <TouchableOpacity onPress={this.submitVote.bind(this)} style={styles.submitVotes}>
+                             <TouchableOpacity onPress={this.submitVote.bind(this)} style={[styles.submitVotes, {width: 100}]}>
                                <View style={styles.submitVoteView}>
                                  <Text style={[styles.nomText,{color:'white'}]}>投票</Text>
                                </View>
@@ -736,13 +785,18 @@ export default class ActivitiesDetail extends React.Component {
            </View>
          </View>
          <View style={{paddingBottom:10,marginTop:10}}>
-           <Comment ref='commentList'
-                    nav={this.props.nav}
-                    deleteback={this.deleteComment.bind(this)}
-                    commentList={item.Comments==null?[]:item.Comments}
-                    commentConfig={this.state.commentConfig}
-                    commcallback={this.commentsNum.bind(this)}
-                    twoComment={this.startTwoComment.bind(this)}/>
+             <Comment ref='commentList'
+                         style={kstyles.commentView}
+                         nav={this.props.nav}
+                         comBody={kstyles.comBody}
+                         comParBody={kstyles.comParBody}
+                         commView={kstyles.commView}
+                         deleteback={this.deleteComment.bind(this)}
+                         commentList={item.Comments == null ? [] : item.Comments}
+                         commentConfig={this.state.commentConfig}
+                         commcallback={this.commentsNum.bind(this)}
+                         twoComment={this.startTwoComment.bind(this)}
+                        />
          </View>
        </ScrollView>
        <View>
@@ -759,25 +813,14 @@ export default class ActivitiesDetail extends React.Component {
          <CommentInput ref="commentInput" styleType={0} newcommentItem={this.newcomItem.bind(this)} commentConfig={this.state.commentConfig}/>
        </View>
        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
-       <Popup ref={(popup) => { this.popup = popup }}/>
         </View>:<View style={{flex:1}}>
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white'/>
       </View>}
      </View>:<View style={{flex:1,backgroundColor:'white'}}>
        <NavigationBar
-         style={{height: 55,backgroundColor:'#175898'}}
+         style={styles.NavSty}
          leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={this.backList.bind(this)}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>动态详情</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="动态详情"/>
                    }
          rightButton={
                   <View style={{flexDirection: 'row',alignItems: 'center'}}>

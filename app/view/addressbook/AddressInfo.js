@@ -1,24 +1,20 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+Image,
   Text,
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
   ToastAndroid,
-  ListView
-  } from 'react-native';
+  ListView,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome'
 import Icons from 'react-native-vector-icons/Ionicons'
 import colorManager from '../common/styles/manager';
-var Dimensions = require('Dimensions');
-var Modal = require('react-native-modalbox');
 import api from "../../network/ApiHelper";
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var Communications = require('react-native-communications');
@@ -27,8 +23,9 @@ import ActionSheet from 'react-native-actionsheet';
 const buttons = ['取消', '存入手机通讯录'];
 const CANCEL_INDEX = 0;
 const DESTRUCTIVE_INDEX = 1;
-import Toast from  '@remobile/react-native-toast'
+
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 
@@ -44,6 +41,7 @@ export default class AddressInfo extends React.Component {
     };
   };
   componentDidMount() {
+    this.state.userData=[];
     this.fetchData();
   };
   fetchData(){
@@ -51,12 +49,17 @@ export default class AddressInfo extends React.Component {
     api.User.getUserProfile(this.props.Id)
       .then((resData)=>{
         loaderHandler.hideLoader();
-        this.setState({
-          UserData:resData.Data
-        });
-        if(this.state.UserData.length!=0){
-          this.setState({isFetch:true})
+        if(resData.Type==1){
+          this.setState({
+            UserData:resData.Data
+          });
+          if(this.state.UserData.length!=0){
+            this.setState({isFetch:true})
+          }
+        }else{
+          this.setState({isFetch:false})
         }
+
       })
   };
   addContacts(){
@@ -64,34 +67,53 @@ export default class AddressInfo extends React.Component {
       givenName: this.state.UserData.FirstName,
       emailAddresses: [{
         label: "work",
-        email: this.state.UserData.Email
+        email: this.state.UserData.Email==null?"":this.state.UserData.Email
       }],
       phoneNumbers: [{
         label: "mobile",
-        number: this.state.UserData.Mobile
+        number: this.state.UserData.Mobile==null?"":this.state.UserData.Mobile
       }]
     };
+    loaderHandler.showLoader("正在导出");
     Contacts.getAll((err, contacts) => {
       if(err && err.type === 'permissionDenied'){
       } else {
-        this.setState({Allcontacts: contacts});
+        if(contacts.length!=0){
+          let flag=false;
+          for (var i = 0; i < contacts.length; i++) {
+            if(newPerson.givenName==(contacts[i].familyName||contacts[i].givenName||contacts[i].middleName))
+            {
+              loaderHandler.hideLoader();
+              ToastAndroid.show("你已保存该名片",ToastAndroid.SHORT);
+              flag=true;
+              return;
+            }
+          }
+          if(!flag){
+            Contacts.addContact(newPerson, (err) => {
+              loaderHandler.hideLoader();
+              if(err){
+                ToastAndroid.show("保存失败，请重试",ToastAndroid.SHORT);
+              }
+              else {
+                ToastAndroid.show("保存成功",ToastAndroid.SHORT);
+              }
+            })
+          }
+        }else{
+          Contacts.addContact(newPerson, (err) => {
+            loaderHandler.hideLoader();
+            if(err){
+              ToastAndroid.show("保存失败，请重试",ToastAndroid.SHORT);
+            }
+            else {
+              ToastAndroid.show("保存成功",ToastAndroid.SHORT);
+            }
+          })
+        }
       }
     });
-    for (var i = 0; i < this.state.Allcontacts.length; i++) {
-      if(newPerson.givenName==this.state.Allcontacts[i].familyName||this.state.Allcontacts[i].givenName||this.state.Allcontacts[i].middleName)
-      {
-        Toast.show("你已保存该名片","short");
-        return;
-      }
-    }
-    Contacts.addContact(newPerson, (err) => {
-      if(err){
-        Toast.show("保存失败，请重试","short");
-      }
-      else {
-        Toast.show("保存成功","short");
-      }
-    })
+
 
   };
   _handlePress(index) {
@@ -106,19 +128,9 @@ export default class AddressInfo extends React.Component {
     return (
       <View style={styles.containersw}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>个人资料</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="个人资料"/>
                    }
           rightButton={
                     this.state.isFetch?<TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.show.bind(this)}>

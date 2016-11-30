@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+Image,
   Text,
   StyleSheet,
   View,
@@ -14,22 +10,24 @@ import React, {
   TextInput,
   CameraRoll,
   NativeModules,
-  ScrollView
+  ScrollView,
+  Alert,
+  Dimensions
   } from 'react-native';
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 var {height, widths} = Dimensions.get('window');
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var copyuser=null;
 var typeName="";
-import Popup from 'react-native-popup';
-import Toast from  '@remobile/react-native-toast'
+
 import {downLoadFiles} from '../common/DownLoadFile.js'
+import InputScrollView from 'react-native-inputscrollview';
 
 export default class SubmitReport extends React.Component {
   constructor(props) {
@@ -76,28 +74,30 @@ export default class SubmitReport extends React.Component {
       api.Report.getReportDetail(this.props.reportItems.Id)
         .then((resData)=> {
           loaderHandler.hideLoader();
+            if(resData.Type==1){
+              if(resData.Data.IsLocked==1){
+                //锁定 不显示保存和提交按钮
+                this.setState({islock:true});
+              }
+              this.setState({
+                reportDetail: resData.Data,
+                copyToItem:resData.Data.CC,
+                oldimageData: resData.Data.Attachments
+              });
 
-            if(resData.Data.IsLocked==1){
-              //锁定 不显示保存和提交按钮
-              this.setState({islock:true});
+              var oldimg=resData.Data&&this.state.oldimageData!= null && this.state.oldimageData.length > 0&&this.state.oldimageData && this.state.oldimageData.filter((item)=> {
+                  if(item.Name.indexOf(".png")!=-1||item.Name.indexOf(".jpg")!=-1||item.Name.indexOf(".jpeg")!=-1){
+                    return item;
+                  }});
+              if(!oldimg){
+                oldimg=[];
+              }
+              else{
+                this.setState({oldimg:oldimg});}
+              this.setState({isFetch:true});
+            }else{
+              this.setState({isFetch:false});
             }
-            this.setState({
-              reportDetail: resData.Data,
-              copyToItem:resData.Data.CC,
-              oldimageData: resData.Data.Attachments
-            });
-
-            var oldimg=resData.Data&&this.state.oldimageData!= null && this.state.oldimageData.length > 0&&this.state.oldimageData && this.state.oldimageData.filter((item)=> {
-              if(item.Name.indexOf(".png")!=-1||item.Name.indexOf(".jpg")!=-1||item.Name.indexOf(".jpeg")!=-1){
-                return item;
-              }});
-            if(!oldimg){
-              oldimg=[];
-            }
-            else{
-            this.setState({oldimg:oldimg});}
-          this.setState({isFetch:true});
-
     });}
     loaderHandler.showLoader("加载中...");
     api.Report.getReportTemplate(this.props.reportItems.type, this.props.reportItems.dateTarget)
@@ -114,6 +114,17 @@ export default class SubmitReport extends React.Component {
       });
     this.forceUpdate();
   };
+  uploadImages() {
+    var nums = 3 - (this.state.oldimg.length + this.state.imageData.length);
+    this.props.nav.push({
+      id: 'PhotoSelector',
+      num: nums,
+      getSelImg: (images)=> {
+        this.getImgs(images)
+      }
+    })
+  }
+
   getImgs(asset){
     var _this = this;
     var results=asset.map((item)=> {
@@ -136,14 +147,6 @@ export default class SubmitReport extends React.Component {
     _this.setState({
       imageData: _this.state.imageData
     });
-  }
-  uploadImages(){
-    var nums = 3-(this.state.oldimg.length+this.state.imageData.length);
-    this.props.nav.push({
-      id: 'PhotoSelector',
-      num:nums,
-      getSelImg:(images)=>{this.getImgs(images)}
-    })
   }
   downLoadfiles(fileName,fileUrl){
     downLoadFiles(fileName,fileUrl);
@@ -182,33 +185,69 @@ export default class SubmitReport extends React.Component {
     var body ="";
     var conpytouser=null;
     if(this.state.templateItem.templates!=null) {
-      for (var i = 0; i < this.state.templateItem.templates.length; i++) {
-        if (this.state["reportCon" + i] == null && this.state.reportDetail != "") {
-          this.state["reportCon" + i] = this.state.reportDetail.ExtendPropertyInfos[i].Body;
-        }
-        if (this.state.reportDetail == "" && this.state["reportCon" + i] == null) {
-          Toast.show('输入项不能为空！',"short");
-          return;
-        }
-        this.state.reportCon.push(this.state["reportCon" + i]);
+      /**
+       * 有汇报模板
+       */
+      if(this.state.reportDetail.length!=0&&this.state.reportDetail.Body!=""){
+        ToastAndroid.show('汇报模版已更新,禁止修改！',ToastAndroid.SHORT);
+        return;
       }
+      if(this.state.reportDetail.length!=0){
+        //修改汇报
+        for (var i = 0; i < this.state.templateItem.templates.length; i++) {
+          if (this.state["reportCon" + i] == null && this.state.reportDetail != "") {
+            this.state["reportCon" + i] = this.state.reportDetail.ExtendPropertyInfos[i].Body;
+          }
+          if(this.state["reportCon" + i] != ""){
+            this.state.reportCon.push(this.state["reportCon" + i]);
+          }
+          if (this.state["reportCon" + i] == "") {
+            ToastAndroid.show('输入项不能为空！',ToastAndroid.SHORT);
+            this.state.reportCon=[];
+            return;
+          }
+        }
+      }
+      if(this.state.reportDetail.length==0){
+        //创建汇报
+        for (var i = 0; i < this.state.templateItem.templates.length; i++) {
+          if(this.state["reportCon" + i] != ""){
+            this.state.reportCon.push(this.state["reportCon" + i]);
+          }
+          if (this.state["reportCon" + i] == ""||this.state["reportCon" + i] == null) {
+            ToastAndroid.show('输入项不能为空！',ToastAndroid.SHORT);
+            this.state.reportCon=[];
+            return;
+          }
+        }
+      }
+      //根据web端汇报的设计规则,每一项内容之间用#huobanyunReport#隔开
       body = this.state.reportCon.join('#huobanyunReport#')
     }
     else
     {
-      if (this.state.reportCons== null && this.state.reportDetail != "") {
-        this.state.reportCons=this.state.reportDetail.Body
-      }
-      if(this.state.reportCons==null&&this.state.reportDetail == ""){
-        Toast.show('输入项不能为空！',"short");
+      if(this.state.reportDetail.length!=0&&this.state.reportDetail.Body==""){
+        ToastAndroid.show('汇报模版已更新,禁止修改！',ToastAndroid.SHORT);
         return;
       }
-      if(this.state.reportCons==null){
-        Toast.show('输入项不能为空！',"short");
-        return;
+      //没有汇报模板
+      if(this.state.reportDetail.length!=0){
+        //修改模板
+        if (this.state.reportCons==null) {
+          this.state.reportCons=this.state.reportDetail.Body
+        }
+        if(this.state.reportCons==""){
+          ToastAndroid.show('输入项不能为空！',ToastAndroid.SHORT);
+          return;
+        }
       }
-      else{
-      body = this.state.reportCons;}
+      if(this.state.reportDetail.length==0){
+        if(this.state.reportCons==""||this.state.reportCons==null){
+          ToastAndroid.show('输入项不能为空！',ToastAndroid.SHORT);
+          return;
+        }
+      }
+      body = this.state.reportCons;
     }
 
     if(this.state.copyToItem!=null){
@@ -230,33 +269,33 @@ export default class SubmitReport extends React.Component {
         .then((resData)=> {
           loaderHandler.hideLoader();
           if(resData.Type!=1){
-            Toast.show(resData.Data,"short");
+            ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
           }
           if(resData.Type==1&&istemp==1&&resData.Data.Id!=0){
             //保存
-            Toast.show('保存成功！',"short");
+            ToastAndroid.show('保存成功！',ToastAndroid.SHORT);
             this.props.updateState(true,true,resData.Data.Id);
           }
           if(resData.Type==1&&istemp==0&&resData.Data.Id!=0){
             //提交
-            Toast.show('提交成功！',"short");
+            ToastAndroid.show('提交成功！',ToastAndroid.SHORT);
             this.props.updateState(true,false,resData.Data.Id);
           }
           this.props.nav.pop();
-          //this.props.nav.immediatelyResetRouteStack([{
-          //  id: 'CreatReport',
-          //  type:reportData.type,
-          //  curryear:this.props.reportItems.curryear,
-          //  currmonth:this.props.reportItems.currmonth
-          //}]);
         })
-      .catch(()=>{loaderHandler.hideLoader();Toast.show('服务器异常，请检查网络',"short");})
+      .catch(()=>{loaderHandler.hideLoader();ToastAndroid.show('服务器异常，请检查网络',ToastAndroid.SHORT);})
     }
     else {
       if(position==1){
         //点击提交汇报
         if(this.state.reportDetail.IsLocked==1){
-          this.popup.alert('提示', '汇报被锁定，无法修改！');
+           Alert.alert(
+            '提示',
+          '汇报被锁定，无法修改！',
+          [
+            {text: '确定'},
+          ]
+       	)
           return;
         }
       }
@@ -278,7 +317,7 @@ export default class SubmitReport extends React.Component {
       loaderHandler.showLoader("请稍等。。。");
       api.Report.updateReport(this.props.reportItems.Id, body, reportData.type, conpytouser, istemp, attachmentsId, fileData)
         .then((resData)=> {
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
           loaderHandler.hideLoader();
           if(resData.Type==1&&istemp==1){
             //保存
@@ -290,7 +329,7 @@ export default class SubmitReport extends React.Component {
           }
           this.props.nav.pop();
         })
-        .catch(()=>{loaderHandler.hideLoader();Toast.show('服务器异常，请检查网络',"short");})
+        .catch(()=>{loaderHandler.hideLoader();ToastAndroid.show('服务器异常，请检查网络',ToastAndroid.SHORT);})
     }
 
   }
@@ -309,19 +348,9 @@ export default class SubmitReport extends React.Component {
     return (
       <View style={styles.submitCon}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>{this.state.isCreat?'写'+typeName:'修改'+typeName}</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle={this.state.isCreat?'写'+typeName:'修改'+typeName}/>
                    }
           rightButton={
                 <View style={{justifyContent: 'center'}}>
@@ -345,7 +374,7 @@ export default class SubmitReport extends React.Component {
             {this.state.isCreat ? <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>{this.state.templateItem.title}</Text>
               : <Text style={{fontSize: 16,fontWeight:'bold',color:'black'}}>{this.state.reportDetail.Title}</Text>}
           </View>
-          <ScrollView keyboardShouldPersistTaps={true}>
+          <InputScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.conView}>
               {
                 this.state.isCreat ?
@@ -355,7 +384,6 @@ export default class SubmitReport extends React.Component {
                     <TextInput
                       style={{height:100,textAlignVertical:'top'}}
                       multiline={true}
-                      textAlign={'start'}
                       onChangeText={(text) => this.setState({ reportCons: text})}
                       underlineColorAndroid="transparent"
                       />
@@ -370,7 +398,6 @@ export default class SubmitReport extends React.Component {
                             style={{height:100,textAlignVertical:'top'}}
                             placeholder={item}
                             multiline={true}
-                            textAlign={'start'}
                             onChangeText={(text) => this.setState({ ['reportCon' + index]: text})}
                             textAlignVertical={'top'}
                             underlineColorAndroid="transparent"
@@ -386,7 +413,6 @@ export default class SubmitReport extends React.Component {
                       style={{height:100}}
                       multiline={true}
                       defaultValue={this.state.reportDetail.Body}
-                      textAlign={'start'}
                       onChangeText={(text) => this.setState({ reportCons: text})}
                       textAlignVertical={'top'}
                       underlineColorAndroid="transparent"
@@ -402,7 +428,6 @@ export default class SubmitReport extends React.Component {
                             style={{height:100}}
                             multiline={true}
                             defaultValue={item.Body}
-                            textAlign={'start'}
                             onChangeText={(text) => this.setState({ ['reportCon' + index]: text})}
                             textAlignVertical={'top'}
                             underlineColorAndroid="transparent"
@@ -435,7 +460,7 @@ export default class SubmitReport extends React.Component {
                         source={{uri:item.Url}}
                         style={{width: 70,height: 85}}
                         />
-                      <Icons name='ios-close'
+                      <Icons name='ios-close-circle'
                              size={26}
                              color='#C7254E'
                              onPress={this.deleteoldImage.bind(this,index)}
@@ -454,7 +479,7 @@ export default class SubmitReport extends React.Component {
                         source={{uri:item.uri}}
                         style={{width: 70,height: 85}}
                         />
-                      <Icons name='ios-close'
+                      <Icons name='ios-close-circle'
                              size={26}
                              color='#C7254E'
                              onPress={this.deleteImage.bind(this,index)}
@@ -467,7 +492,7 @@ export default class SubmitReport extends React.Component {
                 this.state.imageData.length>=3||this.state.oldimg.length>=3||(this.state.imageData.length+this.state.oldimg.length)>=3?
                   null:<TouchableOpacity onPress={this.uploadImages.bind(this)}>
                   <View style={styles.addimageView}>
-                    <Icons name='ios-plus-empty'
+                    <Icons name='ios-add'
                            size={50}
                            color='#737373'
                            onPress={this.uploadImages.bind(this)}
@@ -522,11 +547,10 @@ export default class SubmitReport extends React.Component {
               </View>
             </TouchableOpacity>
 
-          </ScrollView>
+          </InputScrollView>
         </View>:null}
 
         <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
-        <Popup ref={(popup) => { this.popup = popup }}/>
       </View>
     );
   }

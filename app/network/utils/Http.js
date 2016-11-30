@@ -1,9 +1,7 @@
 'use strict';
 
-//const SERVER = 'http://i-test.huobanyun.cn';
-//const SERVER = 'http://i.huobanyun.cn';
-const SERVER = 'http://192.168.0.150';
-//const SERVER = 'http://i-preview.huobanyun.cn';
+import AppConfig from '../../view/App_configs'
+const SERVER = AppConfig.SERVER;
 const MOBILE_API = `${SERVER}/Mobile`;
 
 /**

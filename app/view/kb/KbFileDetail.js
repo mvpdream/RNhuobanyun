@@ -1,27 +1,27 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+ Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    Component,
   TextInput,
   ScrollView,
   Linking,
+  ActivityIndicator,
+  WebView,
+  NetInfo,
+  Alert,
   ProgressBarAndroid,
-  WebView
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import _ from 'lodash'
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var {height, widths} = Dimensions.get('window');
@@ -35,7 +35,6 @@ var iconColor;
 var resData=[];
 var str="";
 import Prompt from 'react-native-prompt';
-import Popup from 'react-native-popup';
 import Comment from '../common/Comment.js';
 import CommentInput from '../common/CommentInput.js'
 var BusyIndicator = require('react-native-busy-indicator');
@@ -46,13 +45,14 @@ var twocomCofs=[];
 var commentIndex=-1;
 import ActionSheet from 'react-native-actionsheet';
 var ImagePickerManager = require('NativeModules').ImagePickerManager;
-import Toast from  '@remobile/react-native-toast'
 const Actbuttons = ['取消', '回复', '删除'];
 const CANCEL_INDEX = 0;
 const DESTRUCTIVE_INDEX = 1;
 import RNFS from 'react-native-fs';
 var fileName="";
 import LoaderView from '../common/LoaderView.js'
+import AppConfig from '../App_configs'
+var httpUrl=AppConfig.DOWNLOAD;
 
 class KbMenuView extends Component {
   constructor(props) {
@@ -81,18 +81,14 @@ class KbMenuView extends Component {
           break;
         case 2:
             //删除
-            _this.popup.confirm({
-              title: '刪除',
-              content: ['是否删除？'],
-              cancel: {
-                text: '取消'
-              },
-              ok: {
-                text: '确定',
-                callback:_this.removeFiles.bind(_this)
-              }
-            });
-            break;
+              Alert.alert(
+            '刪除',
+            '是否删除？',
+            [
+              {text: '取消'},
+              {text: '确定', onPress: _this.removeFiles.bind(_this)}
+            ]
+          );
           break;
       }
     }
@@ -125,17 +121,14 @@ class KbMenuView extends Component {
           break;
         case 3:
           //删除
-          _this.popup.confirm({
-            title: '刪除',
-            content: ['是否删除？'],
-            cancel: {
-              text: '取消'
-            },
-            ok: {
-              text: '确定',
-              callback:_this.removeFiles.bind(_this)
-            }
-          });
+           Alert.alert(
+            '刪除',
+            '是否删除？',
+            [
+              {text: '取消'},
+              {text: '确定', onPress: _this.removeFiles.bind(_this)}
+            ]
+          );
           break;
       }
     }
@@ -150,17 +143,14 @@ class KbMenuView extends Component {
           break;
         case 1:
           //删除
-          _this.popup.confirm({
-            title: '刪除',
-            content: ['是否删除该文件？'],
-            cancel: {
-              text: '取消'
-            },
-            ok: {
-              text: '确定',
-              callback:_this.removeFiles.bind(_this)
-            }
-          });
+           Alert.alert(
+            '刪除',
+            '是否删除该文件？',
+            [
+              {text: '取消'},
+              {text: '确定', onPress: _this.removeFiles.bind(_this)}
+            ]
+          );
           break;
       }
     }
@@ -317,7 +307,7 @@ class FavorView extends Component {
         obj.Name=currUser.Name;
         var falg=false;
         if(resData.Type==1){
-          if(resData.Data=='收藏成功!'){
+          if(resData.Data=='收藏成功'){
             this.state.FavorUsers.push(obj);
             falg=true;
             zanflag=true
@@ -330,7 +320,7 @@ class FavorView extends Component {
           this.setState({FavorUsers:this.state.FavorUsers});
           this.props.Favorcallback(this.state.FavorUsers.length,falg);
         }else{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
       });
 
@@ -349,7 +339,7 @@ class FavorView extends Component {
             name="thumbs-up"
             size={16}
             color="#FCC44D"
-            style={{marginLeft:5,marginTop:10,padding:5}}
+            style={{marginLeft:5,padding:6}}
             />
           <Text style={[styles.nomText,{color:'#2C6DAF',width:Dimensions.get('window').width-80}]}>{FavorUsersName&&FavorUsersName.join(',')}</Text>
         </View>:null
@@ -534,7 +524,7 @@ export default class KbFileDetail extends React.Component{
       }
       else if (response.error) {
         //console.log('ImagePickerManager Error: ', response.error);
-        Toast.show('出现未知错误',"short");
+        ToastAndroid.show('出现未知错误',ToastAndroid.SHORT);
       }
       else {
         const source = {uri:"file://"+response.path, isStatic: true};
@@ -550,7 +540,7 @@ export default class KbFileDetail extends React.Component{
   }
     kbMenu(){
       if(!this.props.managePermission){
-        Toast.show("没有权限操作","short");
+        ToastAndroid.show("没有权限操作",ToastAndroid.SHORT);
       }
       else{
       this.refs.kbMenuView.open();}
@@ -588,7 +578,7 @@ export default class KbFileDetail extends React.Component{
             var apkPat=oldDir.substr(0,oldDir.lastIndexOf("/"));
             var apkPath =apkPat+"/"+"Download"+"/"+this.state.resData.FileName;
             var option={
-              fromUrl:res.Data,
+              fromUrl:httpUrl+res.Data[0].DownloadUrl,
               toFile:apkPath,
               begin:(res)=>_this.beginFun(res),
               progress:(res)=>_this.progressFun(res)
@@ -603,7 +593,7 @@ export default class KbFileDetail extends React.Component{
                       this.openFile(option.toFile);
                     }
                     else{
-                      Toast.show("下载失败，请重试","short");
+                      ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
                     }
                   })
               }).catch((err)=>{
@@ -619,18 +609,18 @@ export default class KbFileDetail extends React.Component{
                             this.openFile(option.toFile);
                           }
                           else{
-                            Toast.show("下载失败，请重试","short");
+                            ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
                           }
-                        }).catch((err)=>{Toast.show("下载失败，请重试","short");})
+                        }).catch((err)=>{ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);})
                     }
                     else{
-                      Toast.show("目录创建失败，无法下载","short");
+                      ToastAndroid.show("目录创建失败，无法下载",ToastAndroid.SHORT);
                     }
                   });
               })
 
           }else{
-            Toast.show(res.Data,"short");
+            ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             this.setState({startDownLoad:false});
           }
         });
@@ -643,20 +633,35 @@ export default class KbFileDetail extends React.Component{
     .then((res)=>{
         //存在文件可以直接打开
         this.openFile(apkPath);
-      }).catch(
-      //下载
-      this.downloadFiles.bind(this)
+      }).catch((err)=>{
+        //下载
+        NetInfo.fetch().done((reach) => {
+          if(reach!="WIFI"){
+            Alert.alert(
+              '提示',
+              `检测到当前设备出在非WIFI网络环境下\n是否继续下载？`,
+              [
+                {text: '取消'},
+                {text: '确定', onPress: () =>this.downloadFiles()}
+              ]
+            )
+          }else{
+            this.downloadFiles()
+          }
+        })
+      }
+
      );
 
   }
     openFile(path){
       Linking.canOpenURL("file://"+path).then(supported => {
         if (!supported) {
-          Toast.show('没有对应的应用程序！',"short");
+          ToastAndroid.show('没有对应的应用程序！',ToastAndroid.SHORT);
         } else {
           return Linking.openURL("file://"+path);
         }
-      }).catch(err => Toast.show('打开失败！',"short"));
+      }).catch(err => ToastAndroid.show('打开失败！',ToastAndroid.SHORT));
     }
     removeFiles(){
       if(this.state.resData!=null){
@@ -666,10 +671,10 @@ export default class KbFileDetail extends React.Component{
             if(res.Type==1){
               this.props.removeFile(_this.state.resData.Id);
               this.props.nav.pop();
-              Toast.show(res.Data,"short");
+              ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
             else{
-              Toast.show(res.Data,"short");
+              ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
           });
       }
@@ -685,7 +690,7 @@ export default class KbFileDetail extends React.Component{
               this.props.nav.pop();
             }
             else{
-              Toast.show(res.Data,"short");
+              ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
           });
       }else{
@@ -696,7 +701,7 @@ export default class KbFileDetail extends React.Component{
               this.props.nav.pop();
             }
             else{
-              Toast.show(res.Data,"short");
+              ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
           });
       }
@@ -706,7 +711,7 @@ export default class KbFileDetail extends React.Component{
       //重命名
       value=value.trim();
       if(value.length==0){
-        Toast.show('输入项中不能有空格！',"short");
+        ToastAndroid.show('输入项中不能有空格！',ToastAndroid.SHORT);
         return;
       }
       this.setState({creatFlag:true});
@@ -721,7 +726,7 @@ export default class KbFileDetail extends React.Component{
               this.props.nav.pop();
             }
             else{
-              Toast.show(res.Data,"short");
+              ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
             }
           });
       }
@@ -743,9 +748,9 @@ export default class KbFileDetail extends React.Component{
     }
   uploadFun(files){
     loaderHandler.showLoader("请稍等。。。");
-    api.KB.directUpload(this.state.resData.KbId,this.state.resData.Id,true,files)
+    api.KB.directUpload(this.state.resData.KbId,this.props.project&&this.props.project.projectId,this.state.resData.Id,true,files)
       .then((res)=>{
-        Toast.show(res.Data,"short");
+        ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
         loaderHandler.hideLoader();
         if(res.Type==1){
           var newName=fileName;
@@ -753,9 +758,9 @@ export default class KbFileDetail extends React.Component{
           this.props.nav.pop();
         }
         else{
-          Toast.show(res.Data,"short");
+          ToastAndroid.show((res.Data==undefined||res.Data==null)?"未知错误":res.Data,ToastAndroid.SHORT);
         }
-      }).catch((err)=>{Toast.show('出现未知错误',"short");});
+      }).catch((err)=>{ToastAndroid.show('出现未知错误',ToastAndroid.SHORT);});
   }
     favorNum(num,isFav){
       this.refs.favorNums.getnum(num);
@@ -861,33 +866,21 @@ export default class KbFileDetail extends React.Component{
         return (
             <View style={{flex:1,backgroundColor:'#EFF0F4'}}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                        {
-                         this.props.fileType==2?<Text numberOfLines={1} style={styles.navLeftText}>{this.props.kbName==null?"":this.props.kbName}</Text>:null
-                        }
-                     </View>
+                   <NavLeftView nav={this.props.nav} leftTitle={this.props.kbName==null?"":this.props.kbName}/>
                    }
                   rightButton={
                   <View style={{flexDirection: 'row',alignItems: 'center'}}>
                    {
                         this.state.startLoad?<View style={styles.navLoadIcon}>
-                          <ProgressBarAndroid styleAttr='Inverse' color='white' />
+                          <ActivityIndicator animating={true} color='white'/>
                         </View>:null
                    }
                    {
-                    this.state.fetchSuccess?<TouchableOpacity style={[styles.touIcon,{marginRight:10}]} onPress={this.kbMenu.bind(this)}>
+                    this.state.fetchSuccess?<TouchableOpacity style={[styles.touIcon,{marginRight:5}]} onPress={this.kbMenu.bind(this)}>
                       <Icons
-                        name='android-more-vertical'
+                        name='md-more'
                         size={25}
                         onPress={this.kbMenu.bind(this)}
                         color='white'
@@ -1037,8 +1030,6 @@ export default class KbFileDetail extends React.Component{
                   <CommentInput ref="commentInput" styleType={1} newcommentItem={this.newcomItem.bind(this)} commentConfig={this.state.commentConfig}/>
                 </View>:null
               }
-
-              <Popup ref={(popup) => { this.popup = popup }}/>
               <KbMenuView ref="kbMenuView" nav={this.props.nav}/>
               <Prompt
                 title="重命名"

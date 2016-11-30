@@ -1,21 +1,18 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+   Image,
     Text,
     StyleSheet,
     View,
     ScrollView,
     TouchableOpacity,
     ToastAndroid,
-    ListView
-    } from 'react-native';
+    ListView,
+    Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions=require('Dimensions');
 import api from "../../network/ApiHelper";
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
@@ -48,14 +45,21 @@ export default class DepAddress extends React.Component{
       api.OS.getUnitsOfDep(Id)
         .then((resData)=>{
           loaderHandler.hideLoader();
-          var allData = resData.Data.Deps.concat(resData.Data.Users);
-          this.setState({
-            AllData:this.state.AllData.cloneWithRows(allData),
-            ishave:true
-          });
-          if(resData.Data&&resData.Data.length<=5){
-            this.refs.list.scrollTo({x:0,y:0,animated:false});
+          if(resData.Type==1){
+            var allData = resData.Data.Deps.concat(resData.Data.Users);
+            this.setState({
+              AllData:this.state.AllData.cloneWithRows(allData),
+              ishave:true
+            });
+            if(resData.Data&&resData.Data.length<=5){
+              this.refs.list.scrollTo({x:0,y:0,animated:false});
+            }
+          }else{
+            this.setState({
+              ishave:false
+            });
           }
+
         })
     }
     getUserInfo(Id){
@@ -125,6 +129,8 @@ export default class DepAddress extends React.Component{
                <ListView
                  ref="list"
                 dataSource={this.state.AllData}
+                removeClippedSubviews={false}
+                enableEmptySections={true}
                 renderRow={this.allItem.bind(this)}
                 style={{backgroundColor: 'white',flex:1,paddingBottom:10}}
                 />

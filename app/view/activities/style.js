@@ -2,12 +2,12 @@
  * Created by wangshuo on 2016/2/16.
  */
 'use strict';
-
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
+  Dimensions
+  } from 'react-native'
+
 module.exports = StyleSheet.create({
   Ncontainer: {
     flex: 1,
@@ -333,9 +333,9 @@ module.exports = StyleSheet.create({
     height: 300,
   },
   scopeView:{
-    padding:5,
+    padding:3,
     flexDirection: 'row',
-    borderRadius: 8,
+    borderRadius: 6,
     borderColor: '#dddddd',
     backgroundColor:'#5DCFF3',
     borderWidth: 1
@@ -420,7 +420,7 @@ module.exports = StyleSheet.create({
     width:Dimensions.get('window').width-40,
     marginLeft:20,
     paddingLeft:10,
-    paddingRight:20,
+    paddingRight:20
   },
   voteorreceView:{
     borderWidth:1,
@@ -470,7 +470,7 @@ module.exports = StyleSheet.create({
     position:'relative',
     top:55,
     right:5,
-    left:Dimensions.get('window').width*0.58,
+    left:Dimensions.get('window').width-150,
     bottom:10
   },
   openViewView:{
@@ -483,8 +483,14 @@ module.exports = StyleSheet.create({
     left:0
   },
   openViewsView:{
-    backgroundColor:'#F2F2F2',
-    width:Dimensions.get('window').width*0.40
+    backgroundColor:'#F2F2F2'
+  },
+  AnnouncementView:{
+    justifyContent: 'center',
+    backgroundColor:'#5DCFF3',
+    alignItems: 'center',
+    padding:3,
+    borderRadius:4
   },
   modalTextView:{
     borderBottomColor:'#D7D7D7',
@@ -522,10 +528,53 @@ module.exports = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  navLeftIcon:{
+    height:55,
+    width:35,
+    paddingRight:5,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   rightNavText:{
     color: 'white',
-    fontSize:18
+    fontSize:16
   },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  },
+  badgeView:{
+    width:7,
+    height:7,
+    borderRadius: 3.5,
+    position: 'absolute',
+    top: 13,
+    bottom: 0,
+    right: 0,
+    left: 22,
+    backgroundColor:'red'
+  },
+  NoticeCellDate:{
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft:15
+  },
+  title:{
+    color: 'black',
+    fontSize: 14
+  },
+  NoticeTitle:{
+    color: 'black',
+    fontSize: 16,
+    fontWeight: '400'
+  },
+  NoticeCellContent:{
+    backgroundColor:'white',
+    padding: 15,
+    paddingTop: 10,
+    paddingBottom: 10,
+  }
+
 
 
 

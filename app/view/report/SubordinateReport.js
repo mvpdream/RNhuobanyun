@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+    Image,
   Text,
   StyleSheet,
   View,
@@ -12,13 +8,15 @@ import React, {
   ToastAndroid,
   ListView,
   Alert,
-  ScrollView
+  ScrollView,
+  Dimensions
   } from 'react-native';
+
 import styles from "./style";
-var Dimensions=require('Dimensions');
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
 import ReportRules from './ReportRules';
@@ -44,34 +42,38 @@ export default class SubordinateReport extends React.Component{
     };
   };
   componentDidMount() {
-
     this.getMySubordinate();
   }
   getMySubordinate() {
     api.User.getMySubordinate()
       .then((resData)=>{
-        this.setState({
-          userdata: resData.Data
-        });
-        if(resData.Data!=""){
-          if(this.props.userid!=null){
-            this.setState({subordinateId:this.props.userid,subordinatename:this.props.username});
-            this.refs.dailyLists.startLoad(this.props.userid);
-            this.refs.weekLists.startLoad(this.props.userid);
-            this.refs.monthLists.startLoad(this.props.userid);
+        if(resData.Type==1){
+          this.setState({
+            userdata: resData.Data
+          });
+          if(resData.Data!=""){
+            if(this.props.userid!=null){
+              this.setState({subordinateId:this.props.userid,subordinatename:this.props.username});
+              this.refs.dailyLists.startLoad(this.props.userid);
+              this.refs.weekLists.startLoad(this.props.userid);
+              this.refs.monthLists.startLoad(this.props.userid);
+            }
+            else{
+              this.showDialog()}
           }
           else{
-          this.showDialog()}
+            Alert.alert(
+              '没有下属',
+              '没有相关的下属人员！',
+              [
+                {text: '确定', onPress: () => {this.props.nav.pop()}},
+              ]
+            )
+          }
+        }else{
+          alert("获取下属失败");
         }
-        else{
-          Alert.alert(
-            '没有下属',
-            '没有相关的下属人员！',
-            [
-              {text: '确定', onPress: () => {this.props.nav.pop()}},
-            ]
-          )
-        }
+
       })
   }
   cancelGet(){
@@ -93,9 +95,9 @@ export default class SubordinateReport extends React.Component{
             month: new Date().getMonth() + 1,
             year: new Date().getFullYear()
           });
-          this.refs.dailyLists&&this.refs.dailyLists.startLoad(this.state.subordinateId);
-          this.refs.weekLists&&this.refs.weekLists.startLoad(this.state.subordinateId);
-          this.refs.monthLists&&this.refs.monthLists.startLoad(this.state.subordinateId);
+        this.refs.dailyLists && this.refs.dailyLists.startLoad(this.state.subordinateId);
+        this.refs.weekLists && this.refs.weekLists.startLoad(this.state.subordinateId);
+        this.refs.monthLists && this.refs.monthLists.startLoad(this.state.subordinateId);
         },
         negativeText: "取消",
         onNegative:()=>{this.cancelGet()},
@@ -118,19 +120,9 @@ export default class SubordinateReport extends React.Component{
     return (
       <View style={{flex:1}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>下属的汇报</Text>
-                     </View>
+           <NavLeftView nav={this.props.nav} leftTitle="下属的汇报"/>
                    }
           rightButton={
 

@@ -1,21 +1,20 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-    Image,
+import React, { Component } from 'react';
+import {
+     Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    Component
-    } from 'react-native';
+    Alert,
+    NetInfo,
+  Dimensions
+  } from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons'
 var {height, widths} = Dimensions.get('window');
@@ -23,9 +22,6 @@ import Prompt from 'react-native-prompt';
 import api from "../../network/ApiHelper";
 var BusyIndicator = require('react-native-busy-indicator');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
-import Toast from  '@remobile/react-native-toast'
-import AMapLocation from 'react-native-amap-location';
-import wifi from 'react-native-android-wifi';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import MyAttendance from './MyAttendance.js'
 import PunchCard from './PunchCard.js'
@@ -39,8 +35,17 @@ export default class AttendanceMain extends React.Component{
         };
     };
     componentDidMount() {
-
-
+      NetInfo.fetch().done((reach) => {
+        if(reach=="NONE"){
+          Alert.alert(
+            '警告',
+            `当前设备处于无网络状态\n请连接网络后继续使用。`,
+            [
+              {text: '确定', onPress: () =>{this.props.nav.pop();}}
+            ]
+          )
+        }
+      });
     }
     isPunchOk=(isOk)=>{
       //刷新我的考勤记录
@@ -50,24 +55,16 @@ export default class AttendanceMain extends React.Component{
         }
       }
     };
+    componentWillUnmount() {
 
+    }
     render() {
         return (
             <View style={{flex:1}}>
               <NavigationBar
-                style={{height: 55,backgroundColor:'#175898'}}
+                style={styles.NavSty}
                 leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>考勤</Text>
-                     </View>
+                <NavLeftView nav={this.props.nav} leftTitle="考勤"/>
                    }/>
               <View style={{flex:1}}>
                 <ScrollableTabView

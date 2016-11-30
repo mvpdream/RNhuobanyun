@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+ Image,
   Text,
   TextInput,
   StyleSheet,
@@ -13,16 +9,18 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
-import Popup from 'react-native-popup';
-import Toast from  '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
+var BusyIndicator = require('react-native-busy-indicator');
+var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 
 
 export default class ExitCompany extends React.Component {
@@ -31,27 +29,39 @@ export default class ExitCompany extends React.Component {
     const nav = this.props.nav;
   };
   exitCom(){
-    this.popup.confirm({
-      title: '提示',
-      content: '确定退出该公司？',
-      ok: {
-        text:'确定',
-        callback: () => {
-         this.unregister();
-        }
-      },
-      cancel: {
-        text: '取消'
-      }
-    });
+    Alert.alert(
+      '提示',
+      '确定退出该公司？',
+      [
+        {text: '取消'},
+        {text: '确定', onPress: () => {
+           this.unregister();
+        }}
+      ]
+    )
   }
   unregister() {
     var _that=this;
+    loaderHandler.showLoader("正在注销。。。");
      api.User.unregister()
       .then((resData)=>{
-         Toast.show(resData.Data,"short");
+         ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
+         loaderHandler.hideLoader();
          if(resData.Type==1){
-           _that.props.nav.immediatelyResetRouteStack([{id: 'SelectCompany'}])
+           api.Company.getCompanyList()
+             .then((resDate)=> {
+               loaderHandler.hideLoader();
+               if(resDate.Type==1){
+                if(resDate.Data.length!=0){
+                  _that.props.nav.immediatelyResetRouteStack([{id: 'Login'},{id: 'SelectCompany'}])
+                }else{
+                  _that.props.nav.immediatelyResetRouteStack([{id: 'Login'}])
+                }
+               }else{
+                 ToastAndroid.show("获取列表失败！请重试",ToastAndroid.SHORT);
+               }
+
+             })
          }
        });
   };
@@ -59,18 +69,9 @@ export default class ExitCompany extends React.Component {
     return (
       <View style={styles.containersw}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                    <View style={styles.navLeftBtn}>
-                          <Icons
-                            name="android-arrow-back"
-                            size={28}
-                            style={{marginLeft:20,paddingRight:20}}
-                            color="white"
-                            onPress={() => {this.props.nav.pop()}}
-                          />
-                        <Text style={styles.rightNavText}>退出公司</Text>
-                       </View>
+          <NavLeftView nav={this.props.nav} leftTitle="退出公司"/>
                     }/>
         <View style={{ padding:20}}>
           <Text style={{color:"black",fontSize:15}}>退出公司后，会将你在该公司中设为离职状态，你将无法登录到该公司，若要恢复联系公司管理员</Text>
@@ -83,7 +84,7 @@ export default class ExitCompany extends React.Component {
             </View>
           </TouchableOpacity>
         </View>
-        <Popup ref={(popup) => { this.popup = popup }}/>
+        <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
       </View>
 
     );

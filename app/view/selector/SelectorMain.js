@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+      Image,
   Text,
   StyleSheet,
   View,
@@ -12,13 +8,14 @@ import React, {
   ToastAndroid,
   ListView,
   TextInput,
-  Component,
-  ScrollView
-  } from 'react-native';
+  ScrollView,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
-var Dimensions = require('Dimensions');
 import PinYinUsers from './PinYinUsers'
 import DepUsers from './DepUsers'
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -100,6 +97,7 @@ export default class SelectorMain extends React.Component {
     that=this;
   };
   componentDidMount() {
+    newarr=[];
     selectUserItem=[];
     selectDepItem=[];
   };
@@ -119,18 +117,9 @@ export default class SelectorMain extends React.Component {
     return (
         <View style={{flex:1}}>
           <NavigationBar
-            style={{height: 55,backgroundColor:'#175898'}}
+            style={styles.NavSty}
             leftButton={
-           <View style={styles.navLeftBtn}>
-              <Icons
-                name="android-arrow-back"
-                size={28}
-                style={{marginLeft:20,paddingRight:20}}
-                color="white"
-                onPress={() => {this.props.nav.pop()}}
-              />
-            <Text style={styles.rightNavText}>{navTitle}</Text>
-           </View>
+            <NavLeftView nav={this.props.nav} leftTitle={navTitle}/>
          }/>
           {
             selectorConfig.selectorType==2

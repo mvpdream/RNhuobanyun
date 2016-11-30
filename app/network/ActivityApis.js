@@ -35,9 +35,10 @@ export function getActivityDetail(activity_id) {
  * @param mentioned_deps @的部门
  * @param is_announcement 是否是公告
  * @param announcement_title 公告标题
+ * @param project_id 项目Id
  * @returns {*}
  */
-export function createSharing(users_in_range, deps_in_range, files, announcement_expired_time, has_receipt, content, mentioned_users, mentioned_deps, is_announcement, announcement_title) {
+export function createSharing(users_in_range, deps_in_range, files, announcement_expired_time, has_receipt, content, mentioned_users, mentioned_deps, is_announcement, announcement_title,project_id) {
   return postFormData('createSharing', {
     UsersInRange: users_in_range,
     DepsInRange: deps_in_range,
@@ -48,7 +49,8 @@ export function createSharing(users_in_range, deps_in_range, files, announcement
     MentionedDeps: mentioned_deps,
     IsAnnouncement: is_announcement,
     AnnouncementTitle: announcement_title,
-    Files: files
+    Files: files,
+    ProjectId:project_id
   })
 }
 
@@ -126,4 +128,18 @@ export function removeActivity(activity_id) {
  */
 export function getValidAnnouncement(){
   return getData(`getValidAnnouncement`);
+}
+/**
+ * 获取通知
+ * @returns {Promise.<T>}
+ */
+export function getNotices(){
+  return getData(`GetNotices`);
+}
+/**
+ * 清除所有通知
+ * @returns {Promise.<T>}
+ */
+export function clearUnread(){
+  return postData(`ClearUnread`);
 }

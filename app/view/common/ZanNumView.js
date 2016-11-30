@@ -1,12 +1,13 @@
 'use strict';
+import React, {Component} from 'react'
+import {
+ Text,
+  View,
+  Dimensions
+} from 'react-native';
 
-import React, {
-  Text,
-  View
-  } from 'react-native';
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions = require('Dimensions');
 
 
 export default class ZanNumView extends React.Component {

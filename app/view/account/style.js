@@ -1,11 +1,11 @@
 'use strict';
-
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-} = React;
-var Dimensions=require('Dimensions');
-var {height, widths} = Dimensions.get('window');  //»ñÈ¡ÆÁÄ»¿í¸ß
+  Dimensions
+  } from 'react-native'
+
+var {height, widths} = Dimensions.get('window');  //ï¿½ï¿½È¡ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½
 
 module.exports = StyleSheet.create({
     container: {
@@ -161,7 +161,6 @@ module.exports = StyleSheet.create({
         width:widths*0.45,
         height:50,
         marginTop:10,
-        marginLeft:10,
         marginBottom:10,
         flex:1,
       alignItems:'center',
@@ -170,6 +169,7 @@ module.exports = StyleSheet.create({
       fontSize:16,
       flex:1,
       marginLeft:10,
+      textAlignVertical:'center'
     },
     touch:{
       marginTop:110,
@@ -213,9 +213,7 @@ module.exports = StyleSheet.create({
     },
     updatepasTextIn: {
       height: 40,
-      fontSize: 17,
-      borderColor: 'black',
-      borderWidth: 1
+      fontSize: 17
     },
     bottomTou: {
       alignItems: 'center',
@@ -238,23 +236,27 @@ module.exports = StyleSheet.create({
       justifyContent: 'center',
       marginLeft:10
     },
-  navLeftBtn:{
-    justifyContent: 'center',
-    height:55,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  navLeftText:{
-    width:Dimensions.get('window').width*0.5,
-    color: 'white',
-    fontSize:18
-  },
-  touIcon:{
-    height:55,
-    width:35,
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
+    navLeftBtn:{
+      justifyContent: 'center',
+      height:55,
+      flexDirection: 'row',
+      alignItems: 'center'
+    },
+    navLeftText:{
+      width:Dimensions.get('window').width*0.5,
+      color: 'white',
+      fontSize:18
+    },
+    touIcon:{
+      height:55,
+      width:35,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    NavSty:{
+      height: 55,
+      backgroundColor:'#175898'
+    }
   });
 
 

@@ -1,6 +1,5 @@
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -11,17 +10,17 @@ import React, {
   TextInput,
   ScrollView,
   Alert,
-  ViewPagerAndroid
-  } from 'react-native';
-var Dimensions = require('Dimensions');
+  ViewPagerAndroid,
+  Dimensions
+} from 'react-native';
+
+
 import api from "../../network/ApiHelper";
 import styles from "./style";
 var {height, width} = Dimensions.get('window');
-import ViewPager from 'react-native-viewpager';
 import Icons from 'react-native-vector-icons/Ionicons';
 import Images from 'react-native-image-zoom'
-import Swiper from 'react-native-page-swiper'
-import Toast from  '@remobile/react-native-toast'
+
 import RNFS from 'react-native-fs';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 
@@ -59,32 +58,34 @@ export default class ImagesViewer  extends React.Component {
     RNFS.readdir(apkPat)
     .then((res)=>{
         //直接下载至该目录
-        RNFS.downloadFile(option)
-          .then((res)=>{
-            if(res.statusCode==200){
-              Toast.show("图片已保存到"+apkPat+"目录下","short");
+          const ret = RNFS.downloadFile(option);
+          ret.promise.then(res => {
+            if (res.statusCode == 200) {
+              ToastAndroid.show("图片已保存到"+apkPat+"目录下",ToastAndroid.SHORT);
+            } else {
+              ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
             }
-            else{
-              Toast.show("下载失败，请重试","short");
-            }
-          })
+          }).catch(err => {
+            ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
+          });
       }).catch((err)=>{
         //需要创建
         RNFS.mkdir(apkPat)
         .then((res)=>{
             if(res[0]){
-              RNFS.downloadFile(option)
-                .then((res)=>{
-                  if(res.statusCode==200){
-                    Toast.show("图片已保存到"+apkPat+"目录下","short");
-                  }
-                  else{
-                    Toast.show("下载失败，请重试","short");
-                  }
-                })
+              const ret = RNFS.downloadFile(option);
+              ret.promise.then(res => {
+                if (res.statusCode == 200) {
+                  ToastAndroid.show("图片已保存到"+apkPat+"目录下",ToastAndroid.SHORT);
+                } else {
+                  ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
+                }
+              }).catch(err => {
+                ToastAndroid.show("下载失败，请重试",ToastAndroid.SHORT);
+              });
             }
             else{
-              Toast.show("目录创建失败，无法下载","short");
+              ToastAndroid.show("目录创建失败，无法下载",ToastAndroid.SHORT);
             }
           });
       });
@@ -98,7 +99,7 @@ export default class ImagesViewer  extends React.Component {
        <View style={{height: 55,marginTop:10}}>
          <TouchableOpacity onPress={() => {this.props.nav.pop();}}>
            <Icons
-             name="android-arrow-back"
+             name="md-arrow-round-back"
              size={28}
              color="white"
              style={styles.serchImg}

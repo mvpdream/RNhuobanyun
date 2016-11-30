@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+ Image,
   Text,
   StyleSheet,
   View,
@@ -13,18 +9,19 @@ import React, {
   ScrollView,
   ListView,
   RefreshControl,
-  ProgressBarAndroid
+  ProgressBarAndroid,
+  ActivityIndicator,
+  Dimensions
   } from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 var {height, widths} = Dimensions.get('window');
-import NavigationBar from 'react-native-navigation-bar';
 import ReportRules from './ReportRules';
 import _ from 'lodash';
-import Toast from  '@remobile/react-native-toast'
+
 var firstLoad=false;
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
@@ -103,62 +100,72 @@ export default class ReceiveReportList extends React.Component {
     api.Report.receivedReportList(type,this.state.page)
       .then((resData)=> {
         loaderHandler.hideLoader();
-        if(resData.Data==null&&firstLoad){
-          //第一次加载，且没有数据的时候
-          this.setState({hasActData:false});
-        }
-        if(firstLoad&&this.state.AllData.length==0){
-          this.state.AllData = resData.Data;
-        }
-        this.state.newdata=this.creatData(this.state.AllData);
-        var newarr=[];
-        for (var ii=0; ii < this.state.newdata.rowIds.length; ii++) {
-          for(var r=0;r<this.state.newdata.rowIds[ii].length;r++){newarr.push(r)}
-        }
-        if(newarr&&newarr.length>0&&newarr.length<35){
-          this.setState({hasMore:false});
-        }
-        if(resData.Data&&resData.Data.length!=0){
-          this.setState({hasActData:true})
-        }
-
-        if(!firstLoad){
-          var oldDataLen=newarr&&newarr.length;
-          this.state.AllData=_.merge(this.state.AllData, resData.Data, function(a, b) {
-            if (_.isArray(a)) {
-              return a.concat(b);
-            }
-          });
-          newarr=[];
+        if(resData.Type==1){
+          if(resData.Data==null&&firstLoad){
+            //第一次加载，且没有数据的时候
+            this.setState({hasActData:false});
+          }
+          if(firstLoad&&this.state.AllData.length==0){
+            this.state.AllData = resData.Data;
+          }
           this.state.newdata=this.creatData(this.state.AllData);
-          for (var iii=0; iii < this.state.newdata.rowIds.length; iii++) {
-            for(var rr=0;rr<this.state.newdata.rowIds[iii].length;rr++){newarr.push(rr)}
+          var newarr=[];
+          for (var ii=0; ii < this.state.newdata.rowIds.length; ii++) {
+            for(var r=0;r<this.state.newdata.rowIds[ii].length;r++){newarr.push(r)}
           }
-          if(newarr&&newarr.length==oldDataLen){
-            Toast.show('没有数据咯',"short");
+          if(newarr&&newarr.length>0&&newarr.length<35){
             this.setState({hasMore:false});
-            this.setState({
-              ishavedata:false,
-              isRefreshControl:false,
-              allList: dataSource.cloneWithRowsAndSections(this.state.newdata.blobData,this.state.newdata.sectionIds,this.state.newdata.rowIds),
-              hasMore:false
-            });
-            return;
           }
+          if(resData.Data&&resData.Data.length!=0){
+            this.setState({hasActData:true})
+          }
+
+          if(!firstLoad){
+            var oldDataLen=newarr&&newarr.length;
+            this.state.AllData=_.merge(this.state.AllData, resData.Data, function(a, b) {
+              if (_.isArray(a)) {
+                return a.concat(b);
+              }
+            });
+            newarr=[];
+            this.state.newdata=this.creatData(this.state.AllData);
+            for (var iii=0; iii < this.state.newdata.rowIds.length; iii++) {
+              for(var rr=0;rr<this.state.newdata.rowIds[iii].length;rr++){newarr.push(rr)}
+            }
+            if(newarr&&newarr.length==oldDataLen){
+              ToastAndroid.show('没有数据咯',ToastAndroid.SHORT);
+              this.setState({hasMore:false});
+              this.setState({
+                ishavedata:false,
+                isRefreshControl:false,
+                allList: dataSource.cloneWithRowsAndSections(this.state.newdata.blobData,this.state.newdata.sectionIds,this.state.newdata.rowIds),
+                hasMore:false
+              });
+              return;
+            }
+          }
+
+          this.setState({
+            ishavedata:false,
+            isRefreshControl:false,
+            allList: dataSource.cloneWithRowsAndSections(this.state.newdata.blobData,this.state.newdata.sectionIds,this.state.newdata.rowIds)
+          });
+        }else{
+          ToastAndroid.show('未知错误',ToastAndroid.SHORT);
+          this.setState({
+            isRefreshControl:false
+          });
         }
 
-        this.setState({
-          ishavedata:false,
-          isRefreshControl:false,
-          allList: dataSource.cloneWithRowsAndSections(this.state.newdata.blobData,this.state.newdata.sectionIds,this.state.newdata.rowIds)
-        });
 
       })
   }
   renderFooter() {
     return (
     this.state.ishavedata&&<View ref='footerView' style={styles.footerView}>
-      <View style={{width:30,height:30,justifyContent: 'center'}}><ProgressBarAndroid styleAttr='Inverse' color='blue' /></View>
+      <View style={{width:30,height:30,justifyContent: 'center'}}>
+      <ActivityIndicator animating={true} color='blue'/>
+      </View>
       <Text style={styles.footerText}>
         数据加载中……
       </Text>
@@ -251,7 +258,7 @@ export default class ReceiveReportList extends React.Component {
 
   renderSectionHeader(sectionData,sectionID) {
     return (
-      <View style={{padding: 5,paddingLeft:10}}>
+      <View style={{padding: 5,paddingLeft:10,backgroundColor:'#cccccc'}}>
         <Text style={{fontSize:15,color:'black'}}>
           {sectionData}
         </Text>

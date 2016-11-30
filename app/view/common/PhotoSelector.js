@@ -1,7 +1,7 @@
 'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+Image,
   Text,
   StyleSheet,
   View,
@@ -12,10 +12,10 @@ import React, {
   ScrollView,
   Alert,
   Linking,
-  Component,
   ViewPagerAndroid,
-  } from 'react-native';
-var Dimensions = require('Dimensions');
+  Dimensions
+} from 'react-native';
+
 import api from "../../network/ApiHelper";
 import styles from "./style";
 var {height, width} = Dimensions.get('window');
@@ -25,6 +25,7 @@ var BusyIndicator = require('react-native-busy-indicator');
 import CameraRollPicker from 'react-native-camera-roll-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 var image=[];
 var asset=[];
 var sunNum=3;
@@ -83,18 +84,9 @@ export default class PhotoSelector  extends React.Component {
       //imageMargin：图片之间的间距
      <View style={{flex:1}}>
        <NavigationBar
-         style={{height: 55,backgroundColor:'#175898'}}
+         style={styles.NavSty}
          leftButton={
-           <View style={styles.navLeftBtn}>
-              <Icons
-                name="android-arrow-back"
-                size={28}
-                style={{marginLeft:20,paddingRight:20}}
-                color="white"
-                onPress={() => {this.props.nav.pop()}}
-              />
-            <Text style={{ color: 'white',fontSize:18}}>图片选择</Text>
-           </View>
+          <NavLeftView nav={this.props.nav} leftTitle="图片选择"/>
          }
          rightButton={
              <SelNum ref="rightBtn"/>

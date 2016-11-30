@@ -1,20 +1,18 @@
-/**
- * Created by wangshuo
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+ Image,
     Text,
     StyleSheet,
     View,
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import NavigationBar from 'react-native-navbar';
-var Dimensions=require('Dimensions');
+import NavLeftView from '../common/NavLeftView'
 import Icon from 'react-native-vector-icons/FontAwesome';
 var {height, widths} = Dimensions.get('window');
 import GridView from 'rn-grid-view';
@@ -26,21 +24,49 @@ export default class Application extends React.Component{
         const nav = this.props.nav;
         const gridData = [
           {
-            index:0,
-            title: "通讯录",
-            icon: 'phone-square',
-            iconColor:'#33CC66',
-            onSelect: ()=> {nav.push({id: 'AddressBook'})
-          }
+            index: 0,
+            title: "汇报",
+            icon: 'file-text-o',
+            iconColor: 'gray',
+            onSelect: ()=> {
+              nav.push({id: 'ReportMain'})
+            }
           },
           {
-            index:1,
+            index: 1,
+            title: "文库",
+            icon: 'folder',
+            iconColor: '#E6B02D',
+            onSelect: ()=> {
+              nav.push({id: 'KbMain'})
+            }
+          },
+          {
+            index: 3,
             title: "考勤",
             icon: 'map-marker',
-            iconColor:'#3366CC',
-            onSelect: ()=> {nav.push({id: 'AttendanceMain'})
+            iconColor: '#3366CC',
+            onSelect: ()=> {
+              nav.push({id: 'AttendanceMain'})
+            }
+          },
+          {
+            index: 4,
+            title: "通讯录",
+            icon: 'phone-square',
+            iconColor: '#33CC66',
+            onSelect: ()=> {
+              nav.push({id: 'AddressBook'})
+            }
           }
-          }
+          //{
+          //  index:2,
+          //  title: "嘀！",
+          //  icon: 'bomb',
+          //  iconColor:'red',
+          //  onSelect: ()=> {nav.push({id: 'MyPunchCard'})
+          //  }
+          //}
         ];
         this.state = {
           gridData : gridData
@@ -69,7 +95,7 @@ export default class Application extends React.Component{
         return (
             <View style={{flex:1}}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   title={titleConfig}/>
                 <View style={styles.applicationWhiteV}>
                     <View style={{flex:1,marginTop:10}}>

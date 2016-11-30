@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+Image,
     Text,
     StyleSheet,
     View,
@@ -14,19 +10,18 @@ import React, {
     ListView,
     Platform,
     Linking,
-    Component,
     Alert,
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
-import Popup from 'react-native-popup';
 import api from "../../network/ApiHelper";
-import Toast from '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
 
 
@@ -35,7 +30,7 @@ export default class UserSetting extends React.Component{
         super(props);
         const nav = this.props.nav;
         this.state = {
-          versionNum:"3.4",
+          versionNum:"3.4.2",
           telNum:"0532-88126086"
         };
     };
@@ -45,7 +40,7 @@ export default class UserSetting extends React.Component{
     telFun(){
       Linking.canOpenURL('tel:'+this.state.telNum).then(supported => {
         if (!supported) {
-          Toast.show("打开失败！","short");
+          ToastAndroid.show("打开失败！",ToastAndroid.SHORT);
         } else {
           return Linking.openURL('tel:'+this.state.telNum);
         }
@@ -56,22 +51,25 @@ export default class UserSetting extends React.Component{
       .then((res)=>{
         if(res.Type==1){
           //有新版本要更新
-          this.popup.confirm({
-            title: '新版本',
-            content: ['发现新版本，是否进行更新？'],
-            cancel: {
-              text: '取消'
-            },
-            ok: {
-              text: '下载',
-              callback: () => {
-                Linking.openURL(res.Data).catch(err =>  Toast.show("打开失败！","short"));
-              }
-            }
-          });
+          Alert.alert(
+          '新版本',
+          '发现新版本，是否进行更新？',
+          [
+            {text: '取消'},
+            {text: '下载', onPress: () => {
+               Linking.openURL(res.Data).catch(err =>  ToastAndroid.show("打开失败！",ToastAndroid.SHORT));
+            }}
+          ]
+        )
         }else{
           //当前是最新版本
-          this.popup.alert("当前已是最新版本！");
+           Alert.alert(
+            '',
+          '当前已是最新版本',
+          [
+            {text: '确定'},
+          ]
+        )
         }
         })
     }
@@ -79,18 +77,9 @@ export default class UserSetting extends React.Component{
         return (
             <View style={{flex:1,backgroundColor:'#ECEFF1'}}>
               <NavigationBar
-                style={{height: 55,backgroundColor:'#175898'}}
+                style={styles.NavSty}
                 leftButton={
-                    <View style={styles.navLeftBtn}>
-                          <Icons
-                            name="android-arrow-back"
-                            size={28}
-                            style={{marginLeft:20,paddingRight:20}}
-                            color="white"
-                            onPress={() => {this.props.nav.pop()}}
-                          />
-                        <Text style={styles.rightNavText}>关于伙伴</Text>
-                       </View>
+                 <NavLeftView nav={this.props.nav} leftTitle="关于伙伴"/>
                     }/>
               <View style={{flex:1}}>
               <View style={{alignItems: 'center',marginTop:15}}>
@@ -107,11 +96,11 @@ export default class UserSetting extends React.Component{
                 </TouchableOpacity>
               </View>
               <View style={{alignItems: 'center',marginBottom:30}}>
-                <Text onPress={this.telFun.bind(this)} style={styles.usersafeTexts}>客服电话：0532-88126086</Text>
+                <Text onPress={this.telFun.bind(this)} style={styles.usersafeTexts}>客服电话：{this.state.telNum}</Text>
                 <Text style={[styles.pagerText,{fontSize: 13}]}>©2012-2016 上海乐兴软件技术有限公司</Text>
               </View>
               <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
-              <Popup ref={(popup) => { this.popup = popup }}/>
+            
                 </View>
 
         );

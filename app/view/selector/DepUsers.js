@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+      Image,
     Text,
     StyleSheet,
     View,
@@ -12,13 +8,13 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     ListView,
-  Component,
   TextInput,
-  Alert
-    } from 'react-native';
+  Alert,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions=require('Dimensions');
 import api from "../../network/ApiHelper";
 import CircleCheckBox from 'react-native-circle-checkbox';
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
@@ -39,30 +35,31 @@ class Cell extends Component {
     };
   };
   checkItem(){
-    this.setState({checkState: !this.state.checkState,isNext:!this.state.isNext});
-    if(this.state.checkState){
+    let checkState = !this.state.checkState;
+    let isNext = !this.state.isNext;
+    this.setState({checkState: checkState, isNext: isNext});
+    if (checkState) {
       selectedDepItem.push(this.props.item);
     }
-    else{
-      var _index=selectedDepItem.indexOf(this.props.item);
-      if(_index>-1){
-        selectedDepItem.splice(_index,1)
+    else {
+      var _index = selectedDepItem.indexOf(this.props.item);
+      if (_index > -1) {
+        selectedDepItem.splice(_index, 1)
       }
     }
-    if(selectedDepItem.length>radioNum){
+    if (selectedDepItem.length > radioNum) {
       Alert.alert(
         '警告',
         `做多可以选择：${radioNum}项`,
-        [{text:'确定',onPress:()=>this.setState({checkState: !this.state.checkState})}]
+        [{text: '确定', onPress: ()=>this.setState({checkState: !this.state.checkState})}]
       );
-      var _index=selectedDepItem.indexOf(this.props.item);
-      if(_index>-1){
-        selectedDepItem.splice(_index,1)
+      var _index = selectedDepItem.indexOf(this.props.item);
+      if (_index > -1) {
+        selectedDepItem.splice(_index, 1)
       }
     }
-    else
-    {
-      _depCom.props.callback(null,selectedDepItem);
+    else {
+      _depCom.props.callback(null, selectedDepItem);
     }
   };
   render() {
@@ -120,6 +117,8 @@ export default class DepUsers extends React.Component{
     selectedDepItem=[];
     if(this.props.selectorRadio==0){
       radioNum=1;
+    }else{
+      radioNum=9999;
     }
   };
   componentDidMount() {
@@ -153,14 +152,22 @@ export default class DepUsers extends React.Component{
     api.OS.getUnitsOfDep(Id)
       .then((resData)=>{
         loaderHandler.hideLoader();
-        this.setState({
-          DepData:this.state.DepData.cloneWithRows(resData.Data.Deps),
-          nodata:false,
-          ishave:true
-        });
-        if(resData.Data&&resData.Data.length<=5){
-          this.refs.list.scrollTo({x:0,y:0,animated:false});
+        if(resData.Type==1){
+          this.setState({
+            DepData:this.state.DepData.cloneWithRows(resData.Data.Deps),
+            nodata:false,
+            ishave:true
+          });
+          if(resData.Data&&resData.Data.length<=5){
+            this.refs.list.scrollTo({x:0,y:0,animated:false});
+          }
+        }else{
+          this.setState({
+            nodata:true,
+            ishave:false
+          });
         }
+
 
       })
   }
@@ -196,6 +203,8 @@ export default class DepUsers extends React.Component{
               underlineColorAndroid='transparent'
               placeholder=" 关键字"
               textAlignVertical='center'
+               returnKeyType='search'
+               onSubmitEditing={this.searchDepItem.bind(this)}
               onChangeText={(text) => this.setState({keywords: text})}
               style={{paddingLeft:10,width:Dimensions.get('window').width*0.80}}
               />

@@ -1,6 +1,5 @@
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -10,9 +9,10 @@ import React, {
   ListView,
   TextInput,
   ScrollView,
-  Alert
-  } from 'react-native';
-var Dimensions = require('Dimensions');
+  Alert,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 var {height, width} = Dimensions.get('window');
 import { Bubbles, DoubleBounce, Bars, Pulse } from 'react-native-loader';

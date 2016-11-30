@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, { Component } from 'react';
+import {
+ Image,
   Text,
   StyleSheet,
   View,
@@ -15,16 +11,17 @@ import React, {
   CameraRoll,
   ScrollView,
   NativeModules,
-  Linking
+  Linking,
+  Dimensions
   } from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 var {height, width} = Dimensions.get('window');
-var Modal = require('react-native-modalbox');
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
 var navs=null;
@@ -74,31 +71,36 @@ export default class ReportDetail extends React.Component {
       api.Report.getReportDetail(this.props.reportItem.Id)
       .then((resData)=>{
           loaderHandler.hideLoader();
-          this.setState({isFetch:true});
-          this.setState({
-            reportDetail:resData.Data,
-            imageData:resData.Data.Attachments
-          });
-          var tasteruser = this.state.reportDetail.Auditor && this.state.reportDetail.Auditor.map((item, index)=> {
-              return (
-                item.Name
-              )
+          if(resData.Type==1){
+            this.setState({isFetch:true});
+            this.setState({
+              reportDetail:resData.Data,
+              imageData:resData.Data.Attachments
             });
-          var ccUser = this.state.reportDetail.CC && this.state.reportDetail.CC.map((item, index)=> {
-              return (
-                item.Name
-              )});
-          var imgurlTemp=resData.Data && resData.Data.Attachments&&resData.Data.Attachments.filter((imgitem)=> {
-              if(imgitem.Name.indexOf(".jpg")!=-1||imgitem.Name.indexOf(".png")!=-1||imgitem.Name.indexOf(".jpeg")!=-1){return imgitem}
-            });
-          var imgurls=resData.Data&&imgurlTemp&&imgurlTemp.length>0&&imgurlTemp.map((urlItem)=>{
-              return urlItem.DownloadUrl;
-            });
-          this.setState({
-            tasteruser:tasteruser,
-            ccUser:ccUser,
-            imgUrls:imgurls
-          })
+            var tasteruser = this.state.reportDetail.Auditor && this.state.reportDetail.Auditor.map((item, index)=> {
+                return (
+                  item.Name
+                )
+              });
+            var ccUser = this.state.reportDetail.CC && this.state.reportDetail.CC.map((item, index)=> {
+                return (
+                  item.Name
+                )});
+            var imgurlTemp=resData.Data && resData.Data.Attachments&&resData.Data.Attachments.filter((imgitem)=> {
+                if(imgitem.Name.indexOf(".jpg")!=-1||imgitem.Name.indexOf(".png")!=-1||imgitem.Name.indexOf(".jpeg")!=-1){return imgitem}
+              });
+            var imgurls=resData.Data&&imgurlTemp&&imgurlTemp.length>0&&imgurlTemp.map((urlItem)=>{
+                return urlItem.DownloadUrl;
+              });
+            this.setState({
+              tasteruser:tasteruser,
+              ccUser:ccUser,
+              imgUrls:imgurls
+            })
+          }else{
+            this.setState({isFetch:false});
+          }
+
         })
     }
   };
@@ -116,19 +118,9 @@ export default class ReportDetail extends React.Component {
     return (
       <View style={styles.submitCon}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>{typeName+'详情'}</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle={typeName+'详情'}/>
                    }/>
         {this.state.isFetch? <View style={{flex:1}}>
           <View style={styles.reportTitle}>
@@ -177,7 +169,7 @@ export default class ReportDetail extends React.Component {
               {
                 this.state.imageData && this.state.imageData.map((item, index)=> {
                   return (
-                    <TouchableOpacity key={index} onPress={this.openImg.bind(this,index)}>
+                    <TouchableOpacity key={index} style={{width: 85, height: 100}} onPress={this.openImg.bind(this,index)}>
                       <View key={index} style={{padding:10}}>
                         <Image
                           source={{uri:item.Url}}
@@ -195,7 +187,7 @@ export default class ReportDetail extends React.Component {
                 this.state.imageData && this.state.imageData.map((filesitem, index)=> {
                   if(filesitem.Name.indexOf(".png")==-1&&filesitem.Name.indexOf(".jpg")==-1&&filesitem.Name.indexOf(".jpeg")==-1){
                     return (
-                      <TouchableOpacity  key={index} onPress={this.downLoadfiles.bind(this,filesitem.Name,filesitem.DownloadUrl)}>
+                      <TouchableOpacity  key={index}  style={{padding: 5, height: 40}} onPress={this.downLoadfiles.bind(this,filesitem.Name,filesitem.DownloadUrl)}>
                         <View style={{flexDirection: 'row',padding:5}}>
                           <Icon
                             name="file"

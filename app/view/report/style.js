@@ -3,20 +3,24 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
-var {height, widths} = Dimensions.get('window');  //»ñÈ¡ÆÁÄ»¿í¸ß
+  Dimensions
+  } from 'react-native'
+var {height, widths} = Dimensions.get('window');  //ï¿½ï¿½È¡ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½
 var WINDOW_HEIGHT = Dimensions.get('window').height;
-var LIST_HEIGHT = WINDOW_HEIGHT - 80; //¼ÆËã³ö¹ö¶¯ÇøÓòµÄ¸ß¶È
+var LIST_HEIGHT = WINDOW_HEIGHT - 80; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ß¶ï¿½
 
 var WINDOW_WIDTH = Dimensions.get('window').width;
 var LIST_INFO_WIDTH = WINDOW_WIDTH - 90;
 
 module.exports = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#ECEFF1',
+  },
+  recontainer:{
     flex: 1,
     backgroundColor: '#ECEFF1',
   },
@@ -103,7 +107,11 @@ module.exports = StyleSheet.create({
     paddingLeft:13,
     borderBottomColor: '#dddddd',
     borderBottomWidth: 1.5
-
+  },
+  navLoadIcon:{
+    width:25,
+    height:25,
+    justifyContent: 'center'
   },
   RlistRow: {
     flexDirection: 'row',
@@ -376,7 +384,7 @@ module.exports = StyleSheet.create({
   },
   rightNavText:{
     color: 'white',
-    fontSize:18
+    fontSize:16
   },
   touIcon:{
     height:55,
@@ -397,6 +405,10 @@ module.exports = StyleSheet.create({
     fontSize: 14,
     paddingTop: 10,
     color: 'black'
+  },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
   }
 
 

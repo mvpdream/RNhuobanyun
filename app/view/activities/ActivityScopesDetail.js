@@ -1,10 +1,6 @@
-/**
- * Created by lizx on 2016/3/29.
- */
-'use strict';
-
-import React, {
-  Image,
+import React, {Component} from 'react'
+import {
+   Image,
   Text,
   StyleSheet,
   View,
@@ -13,14 +9,16 @@ import React, {
   ListView,
   TextInput,
   ScrollView,
-  } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
-var Dimensions = require('Dimensions');
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from 'react-native-vector-icons/Ionicons';
 var {height, widths} = Dimensions.get('window');
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 
 
 export default class ActivityScopesDetail extends React.Component {
@@ -31,25 +29,29 @@ export default class ActivityScopesDetail extends React.Component {
       dataSource: new ListView.DataSource({
         rowHasChanged: (row1, row2) => row1 !== row2,
       }),
-      UserData:[],
-      isFetch:false,
-      userCount:0
+      UserData: [],
+      isFetch: false,
+      userCount: 0
     };
-  };
+  }
+
+;
   componentDidMount() {
-    var Id=this.props.activityId;
+    var Id = this.props.activityId;
     api.Activity.getActivityScopes(Id)
-      .then((resData)=>{
-        if(resData.Type==1){
+      .then((resData)=> {
+        if (resData.Type == 1) {
           this.setState({
-            isFetch:true,
-            UserData:resData.Data.Users,
+            isFetch: true,
+            UserData: resData.Data.Users,
             dataSource: this.state.dataSource.cloneWithRows(resData.Data.Users),
-            userCount:resData.Data.Users.length
+            userCount: resData.Data.Users.length
           });
         }
       })
-  };
+  }
+
+;
   renderUser(User) {
     return (
       <View style={styles.voteorreceView}>
@@ -64,40 +66,32 @@ export default class ActivityScopesDetail extends React.Component {
         </View>
       </View>
     );
-  };
+  }
+
+;
   render() {
 
     return (
       <View style={{flex:1,backgroundColor:'white'}}>
         <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>发送范围详情</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="发送范围详情"/>
                    }/>
         <View style={{flex:1}}>
-          {this.state.isFetch&&this.state.UserData.length==0? <View style={styles.noruleViewV}>
+          {this.state.isFetch && this.state.UserData.length == 0 ? <View style={styles.noruleViewV}>
             <Icon
               name="exclamation-circle"
               size={50}
               color="#717171"
               />
             <Text style={styles.noruleViewText}>暂无相关数据</Text>
-          </View>: <ListView
+          </View> : <ListView
             dataSource={this.state.dataSource}
             renderRow={this.renderUser.bind(this)}
             style={{backgroundColor:'#ECEFF1'}}
             />}
-          </View>
+        </View>
         <View style={{padding:12,borderTopColor: '#ECEFF1',borderTopWidth: 1,}}>
           <Text style={{color:'black',fontSize:16}}>共{this.state.userCount}人</Text>
         </View>

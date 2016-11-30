@@ -1,9 +1,5 @@
-/**
- * Created by wangshuo on 2016/3/28.
- */
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   StyleSheet,
@@ -12,29 +8,27 @@ import React, {
   ToastAndroid,
   ListView,
   RefreshControl,
-  ProgressBarAndroid,
+  ActivityIndicator,
   Linking,
   TouchableHighlight,
-  Component,
   TextInput,
-  CameraRoll
-  } from 'react-native';
+  CameraRoll,
+  Modal,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
-import Dimensions from 'Dimensions';
+var {height, width} = Dimensions.get('window');  //获取屏幕宽高
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/Ionicons'
 import Icons from 'react-native-vector-icons/FontAwesome'
-import ViewPager from 'react-native-viewpager';
 import colorManager from '../common/styles/manager';
-var Modal = require('react-native-modalbox');
 import {downLoad} from '../../network/utils/Http.js';
 var firstLoad=false;
 var loaderHandler = require('react-native-busy-indicator/LoaderHandler');
 var BusyIndicator = require('react-native-busy-indicator');
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Comment from '../common/Comment.js';
-import Toast from  '@remobile/react-native-toast'
-var {height, width} = Dimensions.get('window');
 var HTMLView = require('react-native-htmlview');
 var activityData=new ListView.DataSource({
   rowHasChanged: (row1, row2) => row1 !== row2,
@@ -56,7 +50,8 @@ class Cell extends Component {
       tempObj:[],
       itemText:"",
       imgUrls:[],
-      favorflag:false
+      favorflag:false,
+      isAnnouncement:false
     };
     that=this;
   }
@@ -68,7 +63,9 @@ class Cell extends Component {
       getIsReceipt:(isReceipt)=>{this.getIsReceipt(isReceipt)},
       deleteactivity:(activityId,index)=>{_this.deleteActivity(activityId,index)},
       indexId:this.props.rowID,
-      type:this.props.actType
+      type:this.props.actType,
+      project:_this.props.project,
+      reloadList:_this.reloadProList.bind(_this),
   })}
   getIsReceipt(isReceipt){
     if(isReceipt){
@@ -99,7 +96,7 @@ class Cell extends Component {
     api.Activity.toggleLikeState(activityId)
       .then((resData)=>{
         if(resData.Type==1){
-          if(resData.Data=='收藏成功!'){
+          if(resData.Data=='收藏成功'){
             favorflag=true;
             this.setState({
               favorNum:this.state.favorNum+1,
@@ -114,9 +111,9 @@ class Cell extends Component {
             })
           }
         }else{
-          Toast.show(resData.Data,"short");
+          ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         }
-      });
+      })
 
   }
   openImgs(imgindex){
@@ -164,6 +161,20 @@ class Cell extends Component {
 
       }
     }
+    let announcementObj=[];
+    announcementObj=item&&item.Items!=""&&item.Items.filter((tempItem)=>{
+        if(tempItem&&tempItem.length!=0&&tempItem.hasOwnProperty("TenantType")&&tempItem.TenantType=="Announcement"){
+          return tempItem;
+        }
+      });
+    var announcementTil="";
+    if(announcementObj.length!=0&&announcementObj){
+      this.state.isAnnouncement=true;
+      announcementTil=item&&item.Items!=""&&item.Items[0].Title;
+    }else{
+      this.state.isAnnouncement=false;
+      announcementTil="";
+    }
     var imgurls=item&&item.Images&&item.Images.map((urlItem)=>{
         return urlItem.DownloadUrl;
       });
@@ -191,19 +202,34 @@ class Cell extends Component {
           <View style={styles.itemnamesope}>
             <Text style={styles.itemNamesope}>{item&&item.UserCreated.Name}</Text>
             <View style={{width:Dimensions.get('window').width-90,flexDirection: 'row',justifyContent: 'space-between'}}>
+              <View style={{flexDirection: 'row',alignItems:'center'}}>
               <Text onPress={()=>{
                this.props.nav.push({
                   id: 'ActivityScopesDetail',
                   activityId:item&&item.Id
                 });
-              }} style={styles.scopeText}>--{item.Scopes==""?"我自己":item.Scopes}</Text>
+              }}style={[styles.scopeText,{width:Dimensions.get('window').width*0.6}]} numberOfLines={1}>--{item.Scopes==""?"我自己":item.Scopes}</Text>
+              {
+                this.state.isAnnouncement?<View style={styles.AnnouncementView}>
+                <Text style={[styles.scopeText,{color:'white'}]}>公告</Text>
+                </View>:null
+              }
+              </View>
               <Text style={styles.scopeText}>{item&&item['CreateDate']}</Text>
             </View>
           </View>
         </View>
         <TouchableOpacity onPress={this.getActivitiesInfo.bind(this,item&&item.Id)}>
           {
-            item.Body==""?null:<View style={styles.itemBody}>
+            item.Body==""?null:announcementTil!=""?<View style={styles.itemBody}>
+              <HTMLView
+                value={"<p>"+announcementTil+"</p>"}
+                onLinkPress={(url) => {
+              Linking.openURL(url);
+              }}
+                stylesheet={baseStyles}
+                />
+            </View>:<View style={styles.itemBody}>
               <HTMLView
                 value={body}
                 onLinkPress={(url) => {
@@ -218,7 +244,7 @@ class Cell extends Component {
               item&&item.Images && item.Images.map((imageItem, index)=> {
 
                 return (
-                  <TouchableOpacity key={index} onPress={this.openImgs.bind(this,index)}>
+                  <TouchableOpacity key={index} style={{height:90}} onPress={this.openImgs.bind(this,index)}>
                     <View key={index} style={{padding:10}}>
                       <Image
                         source={{uri:imageItem.Url}}
@@ -306,9 +332,6 @@ export default class ActivitiesList extends React.Component {
     super(props);
     const nav = this.props.nav;
     this.state = {
-      dataSource: new ViewPager.DataSource({
-        pageHasChanged: (p1, p2) => p1 !== p2,
-      }),
        page:1,
       AllData:[],
       oneData:[],
@@ -331,13 +354,19 @@ export default class ActivitiesList extends React.Component {
     this.state.AllData =[];
     this.state.page= 1;
     firstLoad=true;
-    loaderHandler.showLoader("加载中...");
-    this.getActivities(this.props.actType);
+    if(this.props.project!=null){
+      this.props.loading(0);
+    }else{
+      loaderHandler.showLoader("加载中...");
+    }
+    if(this.props.project){
+        this.getProjectActivities();
+      }else{
+        this.getActivities(this.props.actType);
+      }
   };
   componentDidUpdate(){
-    if(loaderHandler.getVisit()){
-      loaderHandler.hideLoader();
-    }
+   
   }
   getActivitiesInfo(activityId){
     this.props.nav.push({ id: 'ActivitiesDetail',
@@ -354,52 +383,160 @@ export default class ActivitiesList extends React.Component {
       })}
     })
   };
+  reloadProList(){
+    api.Project.getProjectActivities(this.props.project.projectId,1)
+      .then((resData)=> {
+        if (resData.Type == 1) {
+          if (resData.Data && resData.Data.length != 0) {
+            this.setState({hasActData: true})
+          }
+          favorflag = false;
+          comflag = false;
+          var temp = new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
+          this.setState({
+            ishavedata: false,
+            isRefreshControl: false,
+            allList: temp.cloneWithRows(resData.Data)
+          });
+          this.state.AllData = resData.Data;
 
+        } else {
+          this.setState({
+            isRefreshControl: false
+          });
+        }
+
+      })
+  }
+  getProjectActivities(){
+    api.Project.getProjectActivities(this.props.project.projectId,this.state.page)
+      .then((resData)=> {
+        this.props.loading(1);
+        if (resData.Type == 1) {
+          if (resData.Data && resData.Data.length == 0 && firstLoad) {
+            //第一次加载，且没有数据的时候
+            this.setState({hasActData: false});
+          }
+          if (this.state.AllData.length == 0 && firstLoad) {
+            this.state.AllData = resData.Data;
+          }
+          if (this.state.AllData.length > 0 && this.state.AllData.length < 5) {
+            this.setState({ishavedata: false,hasMore: false, page: 1});
+          }
+          if (resData.Data && resData.Data.length != 0) {
+            this.setState({hasActData: true})
+          }
+          if (!firstLoad) {
+            var oldDataLen = this.state.AllData.length;
+            this.state.AllData = this.state.AllData.concat(resData.Data);
+            if (this.state.AllData.length == oldDataLen) {
+              ToastAndroid.show("没有数据咯",ToastAndroid.SHORT);
+              this.setState({
+                ishavedata: false,
+                isRefreshControl: false,
+                hasMore: false,
+                allList: activityData.cloneWithRows(this.state.AllData)
+              });
+              return;
+            }
+          }
+          favorflag = false;
+          comflag = false;
+          this.setState({
+            ishavedata: false,
+            isRefreshControl: false,
+            allList: activityData.cloneWithRows(this.state.AllData)
+          });
+        } else {
+          this.setState({
+            isRefreshControl: false
+          });
+        }
+
+      })
+  }
+  reloadActList(actType){
+    api.Activity.getActivityList(actType, 1, 5, '')
+      .then((resData)=> {
+        if (resData.Type == 1) {
+          if (resData.Data && resData.Data.length != 0) {
+            this.setState({hasActData: true})
+          }
+          favorflag = false;
+          comflag = false;
+          var temp = new ListView.DataSource({rowHasChanged: (row1, row2) => row1 !== row2});
+          this.setState({
+            ishavedata: false,
+            isRefreshControl: false,
+            allList: temp.cloneWithRows(resData.Data)
+          });
+          this.props.isLoadFinish(true);
+        } else {
+          this.setState({
+            isRefreshControl: false
+          });
+          this.props.isLoadFinish(true);
+        }
+
+      })
+  }
   getActivities(actType){
     api.Activity.getActivityList(actType,this.state.page,5,'')
     .then((resData)=>{
         loaderHandler.hideLoader();
-        if(resData.Data&&resData.Data.length==0&&firstLoad){
-          //第一次加载，且没有数据的时候
-          this.setState({hasActData:false});
-        }
-        if(this.state.AllData.length==0&&firstLoad){
-          this.state.AllData = resData.Data;
-        }
-        if(this.state.AllData.length>0&&this.state.AllData.length<5){
-          this.setState({hasMore:false});
-        }
-        if(resData.Data&&resData.Data.length!=0){
-          this.setState({hasActData:true})
-        }
-        if(!firstLoad){
-          var oldDataLen=this.state.AllData.length;
-          this.state.AllData = this.state.AllData.concat(resData.Data);
-          if(this.state.AllData.length==oldDataLen){
-            Toast.show("没有数据咯","short");
-            this.setState({
-              ishavedata:false,
-              isRefreshControl:false,
-              hasMore:false,
-              allList:activityData.cloneWithRows(this.state.AllData)
-            });
-            return;
+        if(resData.Type==1){
+          if(resData.Data&&resData.Data.length==0&&firstLoad){
+            //第一次加载，且没有数据的时候
+            this.setState({hasActData:false});
           }
+          if(this.state.AllData.length==0&&firstLoad){
+            this.state.AllData = resData.Data;
+          }
+          if(this.state.AllData.length>0&&this.state.AllData.length<5){
+            this.setState({hasMore:false});
+          }
+          if(resData.Data&&resData.Data.length!=0){
+            this.setState({hasActData:true})
+          }
+          if(!firstLoad){
+            var oldDataLen=this.state.AllData.length;
+            this.state.AllData = this.state.AllData.concat(resData.Data);
+            if(this.state.AllData.length==oldDataLen){
+              ToastAndroid.show("没有数据咯",ToastAndroid.SHORT);
+              this.setState({
+                ishavedata:false,
+                isRefreshControl:false,
+                hasMore:false,
+                allList:activityData.cloneWithRows(this.state.AllData)
+              });
+              return;
+            }
+          }
+          favorflag=false;
+          comflag=false;
+          this.setState({
+            ishavedata:false,
+            isRefreshControl:false,
+            allList:activityData.cloneWithRows(this.state.AllData)
+          });
+        }else{
+          this.setState({
+            isRefreshControl:false
+          });
+          ToastAndroid.show("未知错误",ToastAndroid.SHORT);
         }
-        favorflag=false;
-        comflag=false;
-        this.setState({
-          ishavedata:false,
-          isRefreshControl:false,
-          allList:activityData.cloneWithRows(this.state.AllData)
-        });
+
       })
 
   };
   renderFooter() {
       return (
         this.state.ishavedata&&<View ref='footerView' style={styles.footerView}>
-            <View style={{width:30,height:30,justifyContent: 'center'}}><ProgressBarAndroid styleAttr='Inverse' color='blue' /></View>
+            <View style={{width:30,height:30,justifyContent: 'center'}}> 
+            <ActivityIndicator
+              animating={true}
+              color='blue'
+            /></View>
             <Text style={styles.footerText}>
               数据加载中……
             </Text>
@@ -412,7 +549,15 @@ export default class ActivitiesList extends React.Component {
       dataSource:this.state.dataSource.cloneWithPages(this.state.pageData)
     })
   };
-  onScroll() {
+  onScroll(e) {
+    if(e.nativeEvent.contentOffset.y==0){
+      //滑动到了顶部
+      this.props.scrollPosition&&this.props.scrollPosition(0);
+    }
+    if(e.nativeEvent.contentOffset.y>0&&this.state.AllData.length>3){
+      //下滑
+      this.props.scrollPosition&&this.props.scrollPosition(1);
+    }
     this.state.hasMore=true;
   }
   onEndReached(actType){
@@ -420,9 +565,48 @@ export default class ActivitiesList extends React.Component {
       this.state.page++;
       firstLoad=false;
       this.setState({ishavedata:true});
+          if(this.props.project){
+        this.getProjectActivities();
+      }else{
+        switch (actType) {
+          case 62:
+            this.getActivities(62);
+            break;
+          case 64:
+            this.getActivities(64);
+            break;
+          case 2:
+            this.getActivities(2);
+            break;
+          case 4:
+            this.getActivities(4);
+            break;
+          case 16:
+            this.getActivities(16);
+            break;
+          case 128:
+            this.getActivities(128);
+            break;
+        }
+      }
+    }
+  };
+  onRefresh(actType){
+    firstLoad=false;
+    oneData=[];
+    this.setState({
+      page:1,
+      AllData:[],
+      hasMore:true,
+      isRefreshControl:true
+    });
+    this.state.page = 1;
+      if(this.props.project){
+      this.getProjectActivities();
+    }else{
       switch(actType){
-        case 54:
-          this.getActivities(54);
+        case 62:
+          this.getActivities(62);
           break;
         case 64:
           this.getActivities(64);
@@ -441,43 +625,13 @@ export default class ActivitiesList extends React.Component {
           break;
       }
     }
-  };
-  onRefresh(actType){
-    firstLoad=false;
-    oneData=[];
-    this.setState({
-      page:1,
-      AllData:[],
-      hasMore:true,
-      isRefreshControl:true
-    });
-      switch(actType){
-        case 54:
-          this.getActivities(54);
-          break;
-        case 64:
-          this.getActivities(64);
-          break;
-        case 2:
-          this.getActivities(2);
-          break;
-        case 4:
-          this.getActivities(4);
-          break;
-        case 16:
-          this.getActivities(16);
-          break;
-        case 128:
-          this.getActivities(128);
-          break;
-      }
 
   }
   deleteActivity(activityid,index){
     if(activityid!=null&&index!=null){
       var tid=0;
       switch(index){
-        case 54:
+        case 62:
           tid=0;
           break;
         case 64:
@@ -517,6 +671,8 @@ export default class ActivitiesList extends React.Component {
             dataSource={this.state.allList}
             ref="list"
             renderRow={this.activityItem.bind(this)}
+            removeClippedSubviews={false}
+            enableEmptySections={true}
             onEndReached={this.onEndReached.bind(this,this.props.actType)}
             onEndReachedThreshold={5}
             onScroll={this.onScroll.bind(this)}
@@ -531,7 +687,7 @@ export default class ActivitiesList extends React.Component {
              }
             />
           {!this.state.hasActData?
-            <View style={styles.noDataView}>
+            <View style={[styles.noDataView,{top:this.props.project?-100:Dimensions.get('window').height * 0.5 - 150}]}>
               <Icons
                 name="exclamation-circle"
                 size={50}
@@ -576,17 +732,9 @@ export default class ActivitiesList extends React.Component {
   render() {
     return (
         <View style={{flex:1,backgroundColor:colorManager.getCurrentStyle().BGCOLOR}}>
-            {this.props.actType==154&&this.state.ishave?<View>
-              <ViewPager
-                dataSource={this.state.dataSource}
-                renderPage={this._renderPage.bind(this)}
-                locked={true}
-                autoPlay={true}/>
-            </View>:null}
           {this.renderContent()}
           <BusyIndicator color='#EFF3F5' loadType={1} loadSize={10} textFontSize={15} overlayColor='#4A4A4A' textColor='white' />
         </View>
-
     );
   }
 };

@@ -1,10 +1,6 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+  Image,
     Text,
     TextInput,
     StyleSheet,
@@ -13,14 +9,15 @@ import React, {
     TouchableOpacity,
     ToastAndroid,
     ListView,
-    } from 'react-native';
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import api from "../../network/ApiHelper";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
-import Toast from  '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
 
 
@@ -36,12 +33,12 @@ export default class UpdatePassword extends React.Component{
     };
     savePas(){
         if(this.state.NewPassword!=this.state.NewPasswords){
-            Toast.show("两次输入的密码不一致！","short");
+            ToastAndroid.show("两次输入的密码不一致！",ToastAndroid.SHORT);
         }
         else{
           api.User.resetPassword(this.state.CurrentPassword,this.state.NewPassword)
             .then((resData)=>{
-                Toast.show(resData.Data,"short");
+                ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
               if(resData.Type==1){
                 this.props.nav.pop();
               }
@@ -52,18 +49,9 @@ export default class UpdatePassword extends React.Component{
         return (
             <View style={styles.containersw}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                    <View style={styles.navLeftBtn}>
-                          <Icons
-                            name="android-arrow-back"
-                            size={28}
-                            style={{marginLeft:20,paddingRight:20}}
-                            color="white"
-                            onPress={() => {this.props.nav.pop()}}
-                          />
-                        <Text style={styles.rightNavText}>修改密码</Text>
-                       </View>
+                   <NavLeftView nav={this.props.nav} leftTitle="修改密码"/>
                     }/>
 
                 <View style={styles.updatepasView}>

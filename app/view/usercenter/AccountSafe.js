@@ -1,23 +1,21 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
-    Image,
+import React, {Component} from 'react'
+import {
+ Image,
     Text,
     StyleSheet,
     View,
     ScrollView,
     TouchableOpacity,
     ToastAndroid,
-    ListView
-    } from 'react-native';
+    ListView,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
-var Dimensions=require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
 
 
@@ -44,18 +42,9 @@ export default class AccountSafe extends React.Component{
         return (
             <View style={styles.containersw}>
                 <NavigationBar
-                  style={{height: 55,backgroundColor:'#175898'}}
+                  style={styles.NavSty}
                   leftButton={
-                    <View style={styles.navLeftBtn}>
-                          <Icons
-                            name="android-arrow-back"
-                            size={28}
-                            style={{marginLeft:20,paddingRight:20}}
-                            color="white"
-                            onPress={() => {this.props.nav.pop()}}
-                          />
-                        <Text style={styles.rightNavText}>帐号安全</Text>
-                       </View>
+                   <NavLeftView nav={this.props.nav} leftTitle="帐号安全"/>
                     }/>
 
                 <TouchableOpacity onPress={this.updatePas.bind(this)}>
@@ -66,7 +55,7 @@ export default class AccountSafe extends React.Component{
                         <View>
                             <Icon
                                 name='angle-right'
-                                size={30}
+                                size={25}
                                 style={styles.rigthBtns}
                                 />
                         </View>
@@ -81,7 +70,7 @@ export default class AccountSafe extends React.Component{
                         <View>
                             <Icon
                                 name='angle-right'
-                                size={30}
+                                size={25}
                                 style={styles.rigthBtns}
                                 />
                         </View>

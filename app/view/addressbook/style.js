@@ -3,14 +3,14 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React, {Component} from 'react'
+import {
   StyleSheet,
-  } = React;
-var Dimensions = require('Dimensions');
-var {height, widths} = Dimensions.get('window');  //»ñÈ¡ÆÁÄ»¿í¸ß
+  Dimensions
+  } from 'react-native'
+var {height, widths} = Dimensions.get('window');  //ï¿½ï¿½È¡ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½
 var WINDOW_HEIGHT = Dimensions.get('window').height;
-var LIST_HEIGHT = WINDOW_HEIGHT - 80; //¼ÆËã³ö¹ö¶¯ÇøÓòµÄ¸ß¶È
+var LIST_HEIGHT = WINDOW_HEIGHT - 80; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ß¶ï¿½
 
 var WINDOW_WIDTH = Dimensions.get('window').width;
 var LIST_INFO_WIDTH = WINDOW_WIDTH - 90;
@@ -66,7 +66,7 @@ module.exports = StyleSheet.create({
   serchImg:{
     width:35,
     height:30,
-    marginLeft:20,
+    marginLeft:15,
   },
   image: {
     width: 45,
@@ -184,8 +184,19 @@ module.exports = StyleSheet.create({
   },
   rightNavText:{
     color: 'white',
-    fontSize:18
+    fontSize:16
   },
+  NavSty:{
+    height: 55,
+    backgroundColor:'#175898'
+  },
+  navLeftIcon:{
+    height:55,
+    width:35,
+    paddingRight:5,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
 
 });
 

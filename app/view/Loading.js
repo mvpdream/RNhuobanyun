@@ -1,24 +1,23 @@
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   View,
   ToastAndroid,
   Animated,
-  Dimensions,
   StatusBar,
   NetInfo,
   Platform,
   Linking,
-  Component,
   StyleSheet,
   Alert,
   TouchableOpacity,
-  } from 'react-native';
-
-import api from '../network/ApiHelper'
+  Dimensions
+} from 'react-native';
+import api from '../network/ApiHelper';
+var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
 var WINDOW_WIDTH = Dimensions.get('window').width;
 var WINDOW_HEIGHT = Dimensions.get('window').height;
-import Toast from  '@remobile/react-native-toast';
 
 export default class Loading extends React.Component {
   constructor(props){

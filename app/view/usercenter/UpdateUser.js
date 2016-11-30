@@ -1,9 +1,5 @@
-/**
- * Created by wangshuo on 2016/2/16.
- */
-'use strict';
-
-import React, {
+import React, {Component} from 'react'
+import {
   Image,
   Text,
   TextInput,
@@ -13,40 +9,46 @@ import React, {
   TouchableOpacity,
   ToastAndroid,
   ListView,
-  DatePickerAndroid
-  } from 'react-native';
+  DatePickerAndroid,
+  Dimensions
+} from 'react-native';
+
 import styles from "./style";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import api from "../../network/ApiHelper";
-var Dimensions = require('Dimensions');
 var {height, widths} = Dimensions.get('window');  //获取屏幕宽高
-import TextField from 'react-native-md-textinput';
 import {formatter} from '../../tools/DateHelper'
-import Toast from  '@remobile/react-native-toast'
 import NavigationBar from 'react-native-navbar';
+import NavLeftView from '../common/NavLeftView'
 import Icons from 'react-native-vector-icons/Ionicons'
+import InputScrollView from 'react-native-inputscrollview'
 
 
 export default class UpdateUser extends React.Component {
   constructor(props) {
     super(props);
     const nav = this.props.nav;
+    let today = new Date();
+    if (this.props.userData.Birthday != "") {
+      today = new Date(this.props.userData.Birthday);
+    }
+    var newDate = formatter('yyyy-MM-dd', today);
     this.state = {
-      avatarSource:this.props.userData.Avatar,
-      date: new Date(),
+       avatarSource: this.props.userData.Avatar,
+      date: formatter('yyyy-MM-dd', new Date()),
       user: this.props.userData,
-      changedate:false,
-      FirstName:"",
-      Departments:"",
-      Avatar:"http://huobanyun-avatar-dev.oss-cn-beijing.aliyuncs.com/92/63.jpg",
-      Mobile:this.props.userData.Mobile==null?"":this.props.userData.Mobile,
-      Phone:this.props.userData.Phone==null?"":this.props.userData.Phone,
-      Email:this.props.userData.Email==null?"":this.props.userData.Email,
-      QQ:this.props.userData.QQ==null?"":this.props.userData.QQ,
-      Hometown:this.props.userData.Hometown==null?"":this.props.userData.Hometown,
-      JobNumber:this.props.userData.JobNumber==null?"":this.props.userData.JobNumber,
-      Birthday:this.props.userData.Birthday,
-      School:this.props.userData.School==null?"":this.props.userData.School
+      changedate: false,
+      FirstName: this.props.userData.FirstName == null ? "" : this.props.userData.FirstName,
+      Position: this.props.userData.Position == null ? "" : this.props.userData.Position,
+      Avatar: "http://huobanyun-avatar-dev.oss-cn-beijing.aliyuncs.com/92/63.jpg",
+      Mobile: this.props.userData.Mobile == null ? "" : this.props.userData.Mobile,
+      Phone: this.props.userData.Phone == null ? "" : this.props.userData.Phone,
+      Email: this.props.userData.Email == null ? "" : this.props.userData.Email,
+      QQ: this.props.userData.QQ == null ? "" : this.props.userData.QQ,
+      Hometown: this.props.userData.Hometown == null ? "" : this.props.userData.Hometown,
+      JobNumber: this.props.userData.JobNumber == null ? "" : this.props.userData.JobNumber,
+      Birthday: newDate,
+      School: this.props.userData.School == null ? "" : this.props.userData.School
     };
   }
 
@@ -63,14 +65,14 @@ export default class UpdateUser extends React.Component {
         if (result.action !== DatePickerAndroid.dismissedAction) {
           let Birthday = new Date(result.year, result.month, result.day);
           this.setState({
-                Birthday:formatter('yyyy/MM/dd',Birthday),
+                Birthday:formatter('yyyy-MM-dd',Birthday),
                 changedate:true
               });
         }
       }
     ).catch(
         error => {
-          Toast.show("出错了","short");
+          ToastAndroid.show("出错了",ToastAndroid.SHORT);
       }
     );
 
@@ -97,10 +99,10 @@ export default class UpdateUser extends React.Component {
     api.User.editUserProfile(userparam)
       .then((resData)=>{
        if(resData.MessageType&&resData.MessageType==-1){
-         Toast.show(resData.MessageContent,"short");
+         ToastAndroid.show(resData.MessageContent,ToastAndroid.SHORT);
        }
        else{
-         Toast.show(resData.Data,"short");
+         ToastAndroid.show((resData.Data==undefined||resData.Data==null)?"未知错误":resData.Data,ToastAndroid.SHORT);
         if(resData.Type==1){
           _that.props.nav.immediatelyResetRouteStack([{id: 'MainTabView',selectedTab:'UserCenter'}])
         }
@@ -115,138 +117,138 @@ export default class UpdateUser extends React.Component {
     ];
     return (
       <View style={styles.containersw}>
-        <NavigationBar
-          style={{height: 55,backgroundColor:'#175898'}}
+       <NavigationBar
+          style={styles.NavSty}
           leftButton={
-                     <View style={styles.navLeftBtn}>
-                     <TouchableOpacity style={[styles.touIcon,{marginRight:20,marginLeft:15}]} onPress={() => {this.props.nav.pop()}}>
-                        <Icons
-                          name="android-arrow-back"
-                          size={28}
-                          color="white"
-                          onPress={() => {this.props.nav.pop()}}
-                        />
-                         </TouchableOpacity>
-                         <Text numberOfLines={1} style={styles.navLeftText}>个人资料</Text>
-                     </View>
+          <NavLeftView nav={this.props.nav} leftTitle="编辑资料"/>
                    }
           rightButton={
-                   <TouchableOpacity style={{marginRight:10,justifyContent: 'center'}} onPress={this.saveUser.bind(this)}>
+                  <TouchableOpacity style={{marginRight:10,alignItems: 'center',flexDirection: 'row'}} onPress={this.saveUser.bind(this)}>
                     <Text numberOfLines={1} style={styles.rightNavText}>保存</Text>
                       </TouchableOpacity>
                     } />
-        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps={true}>
-          <View style={styles.updateView}>
+        <InputScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-              <TextField
-                label={'姓名'}
-                value={this.state.user.FirstName==null?"":this.state.user.FirstName}
-                onChangeText={(text) => this.setState({FirstName: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                style={styles.TextFieldText}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>姓名</Text></View>
+              <View>
+                <TextInput
+                  style={{height: 35, fontSize: 13}}
+                   underlineColorAndroid="transparent"
+                  onChangeText={(text) => this.setState({FirstName: text})}
+                  defaultValue={this.state.user.FirstName == null ? "" : this.state.user.FirstName}
                 />
+              </View>
             </View>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-              <TextField
-                label={'职位'}
-                value={this.state.user.Departments==null?"":this.state.user.Departments}
-                onChangeText={(text) => this.setState({Departments: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                style={styles.TextFieldText}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>职位</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
+                  onChangeText={(text) => this.setState({Position: text})}
+                  defaultValue={this.state.user.Position == null ? "" : this.state.user.Position}
                 />
+              </View>
             </View>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-                <TextField
-                  label={'手机号'}
-                  value={this.state.user.Mobile==null?"":this.state.user.Mobile}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>手机号</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
                   onChangeText={(text) => this.setState({Mobile: text})}
-                  highlightColor={'black'}
-                  labelColor={'#6B6A6A'}
-                  keyboardType={'numeric'}
-                  maxLength={11}
-                  style={styles.TextFieldText}
-                  />
+                  defaultValue={this.state.user.Mobile == null ? "" : this.state.user.Mobile}
+                />
+              </View>
             </View>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-                <TextField
-                  label={'电话'}
-                  value={this.state.user.Phone==null?"":this.state.user.Phone}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>电话</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
                   onChangeText={(text) => this.setState({Phone: text})}
-                  highlightColor={'black'}
-                  labelColor={'#6B6A6A'}
-                  keyboardType={'numeric'}
-                  style={styles.TextFieldText}
-                  />
-            </View>
-          </View>
-
-          <View style={styles.updateView}>
-            <View style={styles.updateTextInput}>
-              <TextField
-                label={'邮箱'}
-                value={this.state.user.Email==null?"":this.state.user.Email}
-                onChangeText={(text) => this.setState({Email: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                keyboardType={'email-address'}
-                style={styles.TextFieldText}
+                  defaultValue={this.state.user.Phone == null ? "" : this.state.user.Phone}
                 />
+              </View>
             </View>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-              <TextField
-                label={'QQ'}
-                value={this.state.user.QQ==null?"":this.state.user.QQ}
-                onChangeText={(text) => this.setState({QQ: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                keyboardType={'numeric'}
-                style={styles.TextFieldText}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>邮箱</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
+                  onChangeText={(text) => this.setState({Email: text})}
+                  defaultValue={this.state.user.Email == null ? "" : this.state.user.Email}
                 />
+              </View>
             </View>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-              <TextField
-                label={'家乡'}
-                value={this.state.user.Hometown==null?"":this.state.user.Hometown}
-                onChangeText={(text) => this.setState({Hometown: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                style={styles.TextFieldText}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>QQ</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
+                  onChangeText={(text) => this.setState({QQ: text})}
+                  defaultValue={this.state.user.QQ == null ? "" : this.state.user.QQ}
                 />
+              </View>
             </View>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-              <TextField
-                label={'工号'}
-                value={this.state.user.JobNumber==null?"":this.state.user.JobNumber}
-                onChangeText={(text) => this.setState({JobNumber: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                keyboardType={'numeric'}
-                style={styles.TextFieldText}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>家乡</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
+                  onChangeText={(text) => this.setState({Hometown: text})}
+                  defaultValue={this.state.user.Hometown == null ? "" : this.state.user.Hometown}
                 />
+              </View>
             </View>
           </View>
 
-          <View style={[styles.updateView,{paddingTop:0,paddingBottom:0}]}>
+          <View style={styles.updateViews}>
+            <View style={styles.updateTextInput}>
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>工号</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
+                  onChangeText={(text) => this.setState({JobNumber: text})}
+                  defaultValue={this.state.user.JobNumber == null ? "" : this.state.user.JobNumber}
+                />
+              </View>
+            </View>
+          </View>
+
+           <View style={[styles.updateView,{paddingTop:0,paddingBottom:0}]}>
             <TouchableOpacity
               onPress={this.showDatePicker.bind(this)}>
             <View style={styles.updateTextInput}>
@@ -258,20 +260,22 @@ export default class UpdateUser extends React.Component {
               </TouchableOpacity>
           </View>
 
-          <View style={styles.updateView}>
+          <View style={styles.updateViews}>
             <View style={styles.updateTextInput}>
-              <TextField
-                label={'毕业学校'}
-                value={this.state.user.School==null?"":this.state.user.School}
-                onChangeText={(text) => this.setState({School: text})}
-                highlightColor={'black'}
-                labelColor={'#6B6A6A'}
-                style={styles.TextFieldText}
+              <View style={{paddingTop: 7.2}}>
+                <Text style={{fontSize: 16}}>毕业学校</Text></View>
+              <View>
+                <TextInput
+                 underlineColorAndroid="transparent"
+                  style={{height: 35, fontSize: 13}}
+                  onChangeText={(text) => this.setState({School: text})}
+                  defaultValue={this.state.user.School == null ? "" : this.state.user.School}
                 />
+              </View>
             </View>
           </View>
+        </InputScrollView>
 
-        </ScrollView>
       </View>
 
     );
